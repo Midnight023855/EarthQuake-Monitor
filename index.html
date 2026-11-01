@@ -8223,6 +8223,9 @@ global.TauPJS=api;
                 hurricaneMode = false;
                 usAlertsMode = false;
                 typhoonMode = false;
+                typhoonManuallyOpened = false;
+                clearTimeout(typhoonAutoCloseTimer); typhoonAutoCloseTimer=null;
+                clearTimeout(jmaTyphoonAutoCloseTimer); jmaTyphoonAutoCloseTimer=null;
                 tsunamiMode = false;
                 waveMode = false;
                 jmaVolcanoMode = false;
@@ -8423,6 +8426,8 @@ global.TauPJS=api;
         let jmaTyphoonInitialized = false;
         let jmaTyphoonAlertSignature = '';
         let jmaTyphoonAutoCloseTimer = null;
+        let typhoonAutoCloseTimer = null;
+        let typhoonManuallyOpened = false;
         const typhoonSpeechSignatures = new Map();
 
         function jmaTyphoonTime(value) {
@@ -8977,7 +8982,7 @@ global.TauPJS=api;
                     layout.classList.add('typhoon-focus'); panel.classList.add('typhoon-active'); topbar.classList.add('typhoon-top-active'); syncSpecialViewVisibility(); map.invalidateSize({ pan:false });
                     typhoonFocusId = String(updated?.tfid || updated?.id || '');
                     renderTyphoonMap(active); centerTyphoonView(updated);
-                    if(updatedJma)scheduleJmaTyphoonAutoClose();else scheduleReturnToLastQuake();
+                    scheduleTyphoonAutoClose();
                 }
                 typhoonAlertSignature = signature; typhoonInitialized = true;
                 nmcTyphoonAlertSignature = nmcSignature; nmcTyphoonInitialized = true;
@@ -9098,15 +9103,21 @@ global.TauPJS=api;
         eqRenderPersistentTyphoons();
         setInterval(eqRenderPersistentTyphoons, 60 * 1000);
 
-        function scheduleJmaTyphoonAutoClose(){
+        function scheduleTyphoonAutoClose(){
+            clearTimeout(typhoonAutoCloseTimer);
             clearTimeout(jmaTyphoonAutoCloseTimer);
-            jmaTyphoonAutoCloseTimer=setTimeout(()=>{
+            if (typhoonManuallyOpened) return;
+            typhoonAutoCloseTimer=setTimeout(()=>{
+                typhoonAutoCloseTimer=null;
                 jmaTyphoonAutoCloseTimer=null;
                 const layout=document.getElementById('mainLayout');
-                if(!typhoonMode||!layout?.classList.contains('typhoon-focus'))return;
+                if(!typhoonMode||typhoonManuallyOpened||!layout?.classList.contains('typhoon-focus'))return;
                 scheduleReturnToLastQuake(1);
             },10000);
+            // Keep the legacy handle synchronized for any existing cleanup path.
+            jmaTyphoonAutoCloseTimer=typhoonAutoCloseTimer;
         }
+        function scheduleJmaTyphoonAutoClose(){ scheduleTyphoonAutoClose(); }
 
         let hurricaneMode = false;
         let hurricaneLayer = L.layerGroup().addTo(map);
@@ -12210,9 +12221,10 @@ global.TauPJS=api;
                 const agencyTxt = String(ev.agency || ev.source || '').toLowerCase();
                 const isEew = /eew/.test(agencyTxt);
                 const terminalEew = isEew && typeof jmaQuakeIsFinished === 'function' && jmaQuakeIsFinished(ev);
-                if (terminalEew) {
-                    // Final/Cancel del EEW no cierra las ondas: se conserva la
-                    // última posición hasta que llegue intensidad JMA a la lista.
+                if (isEew) {
+                    // El receptor JMA separa la apertura de estaciones de la
+                    // decisión de ondas; no activar aquí el modo genérico.
+                    // Evita iniciar animación antes de validar origen/vigencia.
                 } else if (!isEew && jmaIntensityReportMatchesActiveEew(ev) &&
                     (waveMode || ynLiveJmaEvent || document.getElementById('mainLayout')?.classList.contains('wave-focus'))) {
                     try { if(!markWolfxLifecycleFinalForJmaReport(ev)&&!(typeof ynFeedIsFresh==='function'&&ynFeedIsFresh())) closeJapanAfterJmaQuake?.('JMA publicó la intensidad final'); } catch (_) {}
@@ -12248,6 +12260,16 @@ global.TauPJS=api;
         }
 
         function getCurrentWaveEvent() {
+            // Un JMA EEW recién aceptado gobierna su propia animación. La
+            // prioridad solo vive mientras el candidato siga fresco y válido.
+            const jmaCandidate = jmaEewWaveCandidate;
+            const priorityChangedAfterJmaCandidate = !!(jmaCandidate && realEarthquakePriority &&
+                String(realEarthquakePriority.id || '') !== String(jmaCandidate.id || '') &&
+                Number(realEarthquakePriority.ts || 0) >= Number(jmaCandidate.acceptedAt || 0));
+            if (jmaCandidate && !priorityChangedAfterJmaCandidate && jmaCandidate.id !== jmaWaveSuppressedEventId &&
+                taupEewWaveIsFresh(jmaCandidate) && jmaCandidate.raw?.isFinal !== true && jmaCandidate.raw?.isCancel !== true) {
+                return { ...jmaCandidate, status:jmaCandidate.status || 'En vivo' };
+            }
             // Un evento recién llegado por el catálogo JMA debe ganar sobre
             // cualquier EEW antiguo que todavía permanezca en memoria.
             if (jmaCatalogWaveEventId && taupEewWaveEvent?.source === 'JMA catálogo' && String(taupEewWaveEvent.id || '').includes(String(jmaCatalogWaveEventId))) {
@@ -12550,8 +12572,13 @@ global.TauPJS=api;
         function startWaveAnimation() {
             cancelWaveAnimationFrame(waveAnimationTimer); waveAnimationTimer=null;
             renderWaveMode();
-            if (!waveMode) return;
+            if (!waveMode) return false;
             animateWaveMode();
+            const current = getCurrentWaveEvent();
+            return !!(waveMode && waveAnimationTimer != null && current &&
+                waveAnimationEventKey === waveVisualKey(current) && waveAnimationMarker &&
+                waveLayer && waveLayer.hasLayer(waveAnimationMarker) &&
+                waveAnimationEventKey.split('|')[0] === String(current.id || ''));
         }
 
         function stopWaveAnimation() {
@@ -12633,9 +12660,10 @@ global.TauPJS=api;
                     map.setView(YAHOO_NIED_JAPAN_CENTER, typeof YAHOO_NIED_JAPAN_ZOOM !== 'undefined' ? YAHOO_NIED_JAPAN_ZOOM : 5, { animate:false });
                 }
             } catch (_) {}
-            // Ondas en el mapa (capa), sin modo wave-focus de interfaz
+            // Estaciones y ondas son decisiones separadas. Solo renderizar
+            // ondas cuando el llamador lo autoriza explícitamente.
             try {
-                if (ev && typeof hasWaveEventToShow === 'function' && hasWaveEventToShow()) {
+                if (options.activateWaves !== false && ev && typeof hasWaveEventToShow === 'function' && hasWaveEventToShow()) {
                     waveMode = true;
                     if (typeof renderWaveMode === 'function') renderWaveMode();
                 }
@@ -12648,14 +12676,45 @@ global.TauPJS=api;
             return true;
         }
 
-        function activateWaveMode(showToast = true) {
+        function activateWaveMode(showToast = true, options = {}) {
             // EEWs y eventos con ondas: preferir apartado Japón + cuadro EEW (no wave-focus).
             try {
                 const ev = (typeof getCurrentWaveEvent === 'function' && getCurrentWaveEvent())
                     || (typeof taupEewWaveEvent !== 'undefined' && taupEewWaveEvent)
                     || null;
                 if (ev || (typeof hasWaveEventToShow === 'function' && hasWaveEventToShow())) {
-                    return openEewJapanStationsView(ev, { showToast });
+                    const opened = options.openStations === false ? true : openEewJapanStationsView(ev, { showToast, activateWaves:false });
+                    if (!opened) return false;
+                    // La delegación abre el apartado Japón, pero no sustituye
+                    // al arranque de la animación. Este era un retorno prematuro.
+                    waveMode = true;
+                    const layout = document.getElementById('mainLayout');
+                    layout?.classList.add('japan-focus');
+                    layout?.classList.remove('wave-focus');
+                    const expectedId = String(options.expectedEventId || '');
+                    const candidate = getCurrentWaveEvent();
+                    if (expectedId && (!candidate || String(candidate.eewEventId || candidate.id || '') !== expectedId)) {
+                        if (window.__jmaEewWaveDiag) {
+                            window.__jmaEewWaveDiag.last = 'wave event identity mismatch';
+                            window.__jmaEewWaveDiag.animationStarted = false;
+                            window.__jmaEewWaveDiag.expectedEventId = expectedId;
+                            window.__jmaEewWaveDiag.currentEventId = String(candidate?.eewEventId || candidate?.id || '');
+                        }
+                        return false;
+                    }
+                    const animationStarted = startWaveAnimation();
+                    const current = getCurrentWaveEvent();
+                    if (!animationStarted || !current || (expectedId && String(current.eewEventId || current.id || '') !== expectedId)) {
+                        if (window.__jmaEewWaveDiag) {
+                            window.__jmaEewWaveDiag.last = 'wave animation start failed';
+                            window.__jmaEewWaveDiag.animationStarted = false;
+                            window.__jmaEewWaveDiag.expectedEventId = expectedId;
+                            window.__jmaEewWaveDiag.currentEventId = String(current?.eewEventId || current?.id || '');
+                        }
+                        return false;
+                    }
+                    centerWaveMode();
+                    return true;
                 }
             } catch (_) {}
             // Sin evento de ondas: no abrir apartado vacío
@@ -19901,6 +19960,10 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
         }
 
         function drawKmoniStationCanvas() {
+            if (jmaIntensityReportSelectedForMap()) {
+                if (kmoniStationCanvas) kmoniStationCanvas.style.display = 'none';
+                return;
+            }
             if (mapManualRenderSuspend || mapAnimationRenderSuspend) return;
             if (specialViewHidesStations()) {
                 if (kmoniStationCanvas) kmoniStationCanvas.style.display = 'none';
@@ -19966,6 +20029,11 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
         }
 
         function ensureKmoniLiveOverlay(imageUrl) {
+            if (jmaIntensityReportSelectedForMap()) {
+                try { if (kmoniLiveOverlay && map.hasLayer(kmoniLiveOverlay)) map.removeLayer(kmoniLiveOverlay); } catch (_) {}
+                if (kmoniStationCanvas) kmoniStationCanvas.style.display = 'none';
+                return;
+            }
             if (specialViewHidesStations()) {
                 try { if (kmoniLiveOverlay && map.hasLayer(kmoniLiveOverlay)) map.removeLayer(kmoniLiveOverlay); } catch (_) {}
                 if (kmoniStationCanvas) kmoniStationCanvas.style.display = 'none';
@@ -20836,6 +20904,9 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
         }
 
         let jmaEewData = null;
+        // Candidato JMA explícito para impedir que catálogo/TREM suplanten
+        // el EEW recién aceptado mientras se inicia y anima su onda.
+        let jmaEewWaveCandidate = null;
         let jmaEewFromSocket = false;
         // La primera respuesta existente solo establece el estado de la fuente;
         // no debe abrir paneles, ondas ni emitir alertas al iniciar el HTML.
@@ -20878,43 +20949,61 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
         }
 
         function normalizeJmaEewRecord(raw) {
-            if (!raw || typeof raw !== 'object') return null;
+            if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
             const wrapper = raw.eew_raw && typeof raw.eew_raw === 'object' ? raw.eew_raw : raw;
-            const hyp = wrapper.Hypocenter && typeof wrapper.Hypocenter === 'object' ? wrapper.Hypocenter : {};
-            const coord = Array.isArray(hyp.Coordinate) ? hyp.Coordinate : null;
-            const lat = Number(wrapper.Latitude ?? raw.latitude ?? coord?.[1]);
-            const lon = Number(wrapper.Longitude ?? raw.longitude ?? coord?.[0]);
-            const depth = wrapper.Depth ?? raw.depth_km ?? hyp.Depth;
-            const forecast = Array.isArray(wrapper.Forecast) ? wrapper.Forecast : [];
-            const warnArea = Array.isArray(wrapper.WarnArea) ? wrapper.WarnArea : forecast.map(a => ({
-                Chiiki: a?.Name ?? a?.Chiiki ?? '',
-                Code: a?.Code ?? '',
-                From: a?.Intensity?.From ?? a?.From ?? '',
-                To: a?.Intensity?.To ?? a?.To ?? '',
-                Arrive: false,
-                Forecast: true
+            const first = (...values) => values.find(v => v !== undefined && v !== null && String(v).trim() !== '');
+            const nested = (...paths) => {
+                for (const path of paths) {
+                    let value = wrapper;
+                    for (const part of path.split('.')) value = value && typeof value === 'object' ? value[part] : undefined;
+                    if (value !== undefined && value !== null && String(value).trim() !== '') return value;
+                }
+                return undefined;
+            };
+            const hyp = first(nested('Hypocenter'), nested('HypocenterInfo'), nested('Earthquake.Hypocenter'), nested('Earthquake'));
+            const hypObj = hyp && typeof hyp === 'object' ? hyp : {};
+            const coord = first(nested('Hypocenter.Coordinate'), nested('HypocenterInfo.Coordinate'), nested('Earthquake.Hypocenter.Coordinate'), nested('Coordinate'), nested('Epicenter.Coordinate'));
+            const coordArray = Array.isArray(coord) ? coord : null;
+            const numeric = value => value === undefined || value === null || String(value).trim() === '' ? NaN : Number(value);
+            const lat = numeric(first(nested('Latitude'), nested('latitude'), nested('lat'), nested('Hypocenter.Latitude'), nested('HypocenterInfo.Latitude'), nested('Earthquake.Hypocenter.Latitude'), nested('Epicenter.Latitude'), coordArray?.[1], coord?.Latitude, coord?.latitude, coord?.lat, raw.Latitude, raw.latitude, raw.lat));
+            const lon = numeric(first(nested('Longitude'), nested('longitude'), nested('lon'), nested('Hypocenter.Longitude'), nested('HypocenterInfo.Longitude'), nested('Earthquake.Hypocenter.Longitude'), nested('Epicenter.Longitude'), coordArray?.[0], coord?.Longitude, coord?.longitude, coord?.lon, raw.Longitude, raw.longitude, raw.lon));
+            const depth = first(nested('Depth'), nested('depth'), nested('depth_km'), nested('Hypocenter.Depth'), nested('HypocenterInfo.Depth'), nested('Earthquake.Hypocenter.Depth'), raw.Depth, raw.depth, raw.depth_km);
+            const forecast = Array.isArray(wrapper.Forecast) ? wrapper.Forecast : Array.isArray(wrapper.forecast) ? wrapper.forecast : [];
+            const originalWarnArea = first(nested('WarnArea'), nested('warnArea'), nested('WarningAreas'));
+            const warnArea = Array.isArray(originalWarnArea) ? originalWarnArea : forecast.map(a => ({
+                Chiiki: a?.Name ?? a?.Chiiki ?? '', Code: a?.Code ?? '',
+                From: a?.Intensity?.From ?? a?.From ?? '', To: a?.Intensity?.To ?? a?.To ?? '',
+                Arrive: false, Forecast: true
             }));
-            const flag = wrapper.Flag && typeof wrapper.Flag === 'object' ? wrapper.Flag : {};
+            const flag = first(nested('Flag'), nested('flags')) || {};
+            const methodText = [nested('CodeType'), nested('OriginalText'), nested('Message'), nested('Text'), nested('type'), nested('Type'), raw.CodeType, raw.OriginalText, raw.Message, raw.Text, raw.type, raw.Type, nested('Title'), raw.Title].filter(v => v != null).map(String).join(' ');
+            const methodEvidence = methodText.replace(/[^a-z0-9]+/gi, ' ').trim();
+            const method = /\bIPF\s+SINGLE\s+STATION\b/i.test(methodEvidence) ? 'IPF_SINGLE_STATION' : /\bIPF\b/i.test(methodEvidence) ? 'IPF' : /\bPLUM\b/i.test(methodEvidence) ? 'PLUM' : '';
+            const alertEvidence = [nested('AlertType'),nested('WarningType'),nested('CodeType'),nested('Title'),nested('OriginalText'),raw.AlertType,raw.WarningType,raw.CodeType,raw.Title,raw.OriginalText].filter(v=>v!=null).map(String).join(' ').replace(/earthquake\s+early\s+warning/ig,'');
+            const alertType = /SPECIAL\s+WARNING|特別警報/i.test(alertEvidence) ? 'special-warning' : /\bFORECAST\b|予報/i.test(alertEvidence) ? 'forecast' : /\bWARNING\b|警報/i.test(alertEvidence) ? 'warning' : '';
+            const eventID = first(nested('EventID'), nested('eventId'), nested('eventID'), nested('event_id'), nested('ID'), nested('id'), raw.EventID, raw.eventId, raw.eventID, raw.event_id, raw.ID, raw.id);
+            const serial = first(nested('Serial'), nested('serial'), nested('ReportNo'), nested('reportNo'), nested('ReportNumber'), nested('reportNumber'), raw.Serial, raw.serial, raw.ReportNo, raw.reportNo, raw.ReportNumber, raw.reportNumber);
+            const originTime = first(nested('OriginDateTime'), nested('OriginTime'), nested('originTime'), nested('origin_time'), nested('Earthquake.OriginTime'), nested('time_utc'), raw.OriginDateTime, raw.OriginTime, raw.originTime, raw.origin_time, raw.time_utc);
+            const reportTime = first(nested('ReportDateTime'), nested('reportDateTime'), nested('ReportTime'), nested('reportTime'), nested('AnnouncedTime'), nested('announcedTime'), nested('timestamp'), raw.ReportDateTime, raw.reportDateTime, raw.ReportTime, raw.reportTime, raw.AnnouncedTime, raw.announcedTime, raw.timestamp, originTime);
+            const statusValue = first(nested('Issue.Status'),nested('Status'),nested('status'),nested('State'),raw.Issue?.Status,raw.Status,raw.status,raw.State);
+            const statusText = [statusValue,nested('Message'),nested('Text'),nested('Title'),raw.Message,raw.message,raw.Text,raw.text,raw.Title].filter(v => v != null).map(String).join(' ');
             return {
                 ...wrapper,
-                EventID: wrapper.EventID ?? raw.EventID ?? raw.eventId ?? raw.id,
-                Serial: wrapper.Serial ?? raw.Serial,
-                ReportDateTime: wrapper.ReportDateTime ?? raw.ReportDateTime ?? raw.timestamp,
-                ReportTime: wrapper.ReportTime ?? raw.ReportTime ?? raw.timestamp,
-                OriginTime: wrapper.OriginDateTime ?? wrapper.OriginTime ?? raw.time_utc ?? raw.OriginTime,
-                AnnouncedTime: wrapper.AnnouncedTime ?? raw.AnnouncedTime,
-                Latitude: lat,
-                Longitude: lon,
-                Depth: depth,
-                Hypocenter: hyp.Name ?? wrapper.Hypocenter ?? raw.location ?? 'Japón',
-                Magnitude: wrapper.Magnitude ?? raw.magnitude ?? wrapper.Magunitude,
-                MaxIntensity: wrapper.Intensity ?? wrapper.MaxIntensity ?? raw.intensity ?? raw.maxIntensity,
-                Forecast: forecast,
-                WarnArea: warnArea,
-                isFinal: jmaEewBool(flag.is_final ?? wrapper.is_final ?? wrapper.isFinal ?? wrapper.IsFinal ?? raw.isFinal ?? raw.is_final),
-                isCancel: jmaEewBool(flag.is_cancel ?? wrapper.is_cancel ?? wrapper.isCancel ?? wrapper.IsCancel ?? raw.isCancel ?? raw.is_cancel) || /取消|取消報|取り消し|取消し|cancel|cancelled|canceled|retirad/i.test(String(wrapper.Message ?? wrapper.Text ?? wrapper.Status ?? raw.Message ?? raw.message ?? raw.status ?? '')),
-                isTraining: jmaEewBool(flag.is_training ?? wrapper.is_training ?? wrapper.isTraining ?? wrapper.IsTraining ?? raw.isTraining ?? raw.is_training),
-                epicenterConfirmed: jmaEewBool(wrapper.epicenterConfirmed ?? wrapper.EpicenterConfirmed ?? raw.epicenterConfirmed ?? raw.EpicenterConfirmed)
+                EventID:eventID, Serial:serial,
+                ReportDateTime:first(nested('ReportDateTime'), nested('reportDateTime'), nested('timestamp'), raw.ReportDateTime, raw.reportDateTime, raw.timestamp, reportTime),
+                ReportTime:reportTime, OriginTime:originTime,
+                AnnouncedTime:first(nested('AnnouncedTime'), nested('announcedTime'), raw.AnnouncedTime, raw.announcedTime, reportTime),
+                Latitude:lat, Longitude:lon, Depth:depth,
+                Hypocenter:first(hypObj.Name, nested('HypocenterName'), nested('hypocenter'), nested('location'), raw.HypocenterName, raw.hypocenter, raw.location, typeof hyp === 'string' ? hyp : undefined),
+                Magnitude:first(nested('Magnitude'), nested('magnitude'), nested('Magunitude'), nested('mag'), raw.Magnitude, raw.magnitude, raw.Magunitude, raw.mag),
+                MaxIntensity:first(nested('Intensity'), nested('MaxIntensity'), nested('maxIntensity'), nested('intensity'), raw.Intensity, raw.MaxIntensity, raw.maxIntensity, raw.intensity),
+                Forecast:forecast, WarnArea:warnArea,
+                Method:method || undefined, AlertType:alertType || undefined, ReportStatus:statusValue == null ? undefined : String(statusValue),
+                isFinal:jmaEewBool(flag.is_final ?? flag.isFinal ?? nested('is_final') ?? nested('isFinal') ?? nested('IsFinal') ?? nested('Final') ?? raw.isFinal ?? raw.is_final ?? /\bfinal\b|最終報/i.test(statusText)),
+                isCancel:jmaEewBool(flag.is_cancel ?? flag.isCancel ?? nested('is_cancel') ?? nested('isCancel') ?? nested('IsCancel') ?? nested('Cancel') ?? raw.isCancel ?? raw.is_cancel ?? raw.IsCancel) || /取消|取消報|取り消し|取消し|cancel|cancelled|canceled|retirad/i.test(statusText),
+                isTraining:jmaEewBool(flag.is_training ?? nested('is_training') ?? nested('isTraining') ?? nested('IsTraining') ?? raw.isTraining ?? raw.is_training),
+                epicenterConfirmed:jmaEewBool(nested('epicenterConfirmed') ?? nested('EpicenterConfirmed') ?? raw.epicenterConfirmed ?? raw.EpicenterConfirmed),
+                _jmaRawKeys:Object.keys(raw), _jmaWrapperKeys:Object.keys(wrapper), _jmaMethodEvidence:methodText
             };
         }
 
@@ -21050,40 +21139,156 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
             return false;
         }
 
+        function jmaEewWaveDecision(data) {
+            const lat=Number(data?.Latitude), lon=Number(data?.Longitude);
+            const hasCoordinates=Number.isFinite(lat)&&Math.abs(lat)<=90&&Number.isFinite(lon)&&Math.abs(lon)<=180;
+            const originTs=parseJmaEewTime(data?.OriginTime);
+            const originAgeMs=originTs?Date.now()-originTs:Infinity;
+            const mag=Number(data?.Magnitude??data?.Magunitude);
+            const depth=Number(String(data?.Depth??'').replace(/[^\d.]/g,''));
+            const strong=(Number.isFinite(mag)&&mag>=6)||(Number.isFinite(depth)&&depth>=150);
+            const maxAgeMs=strong?18*60*1000:12*60*1000;
+            const eventId=`jma-eew-${data?.EventID||data?.OriginTime||data?.AnnouncedTime||'active'}`;
+            let reason='eligible';
+            if(data?.isCancel)reason='cancelled';
+            else if(data?.isFinal)reason='final report does not start/restart waves';
+            else if(!hasCoordinates)reason='coordinates missing/invalid';
+            else if(!originTs)reason='published origin time missing';
+            else if(originAgeMs < -120000)reason='origin time is in the future';
+            else if(originAgeMs > maxAgeMs)reason='origin outside wave validity window';
+            else if(!jmaEewIsFresh(data))reason='report stale';
+            else if(eventId===jmaWaveSuppressedEventId)reason='wave event explicitly suppressed';
+            return {eligible:reason==='eligible',reason,originTs,originAgeMs,maxAgeMs,hasCoordinates};
+        }
+
+        function jmaEewStationViewDecision(data) {
+            const reportTime=jmaEewReportTime(data);
+            const reportAgeMs=reportTime?Date.now()-reportTime:Infinity;
+            const lat=Number(data?.Latitude),lon=Number(data?.Longitude);
+            const hasCoordinates=Number.isFinite(lat)&&Math.abs(lat)<=90&&Number.isFinite(lon)&&Math.abs(lon)<=180;
+            const originTime=parseJmaEewTime(data?.OriginTime);
+            const originAgeMs=originTime?Date.now()-originTime:Infinity;
+            let reason='eligible';
+            if(data?.isCancel)reason='cancelled report';
+            else if(!jmaEewIsFresh(data))reason='report is stale or has no valid report time';
+            else if(!hasCoordinates)reason='coordinates missing/invalid';
+            else if(!data?.isFinal&&originTime&&(originAgeMs < -120000||originAgeMs > 15*60*1000))reason='origin outside current station-view window';
+            else if(!data?.isFinal&&!originTime&&reportAgeMs>4*60*1000)reason='no origin time and report is outside live station-view window';
+            return {eligible:reason==='eligible',reason,reportAgeMs,originAgeMs,hasCoordinates};
+        }
+
+        function jmaEewDiagnostic(entry) {
+            const diag = window.__jmaEewWaveDiag = window.__jmaEewWaveDiag || { last:'', history:[] };
+            const record = { at:new Date().toISOString(), ...entry };
+            diag.last = record.decision || record.reason || 'JMA EEW';
+            diag.lastAt = record.at;
+            diag.history.push(record);
+            if (diag.history.length > 100) diag.history.splice(0, diag.history.length - 100);
+            return record;
+        }
+
+        function cancelJmaEewVisuals(eventId) {
+            const eid = String(eventId || '');
+            if (!eid) return false;
+            const matches = ev => {
+                if (!ev) return false;
+                const agency = String(ev.agency || ev.source || '');
+                const isJmaEew = /JMA[\s_-]*EEW/i.test(agency) ||
+                    (ev.listFromEew === true && /JMA/i.test(agency) && !!ev.eewEventId);
+                return isJmaEew && (String(ev.eewEventId || '') === eid ||
+                    String(ev.raw?.EventID || ev.EventID || '') === eid);
+            };
+            let removedCurrentVisual = false;
+            if (matches(jmaEewWaveCandidate)) jmaEewWaveCandidate = null;
+            if (matches(taupEewWaveEvent)) {
+                taupEewWaveEvent = null;
+                clearTimeout(genericTaupWaveExpiryTimer);
+                genericTaupWaveExpiryTimer = null;
+                genericTaupWaveExpiryId = '';
+            }
+            const live = typeof ynLiveJmaEvent !== 'undefined' ? ynLiveJmaEvent : null;
+            if (matches(live)) {
+                const liveId = String(live.id || '');
+                ynLiveJmaEvent = null;
+                clearTimeout(ynLiveJmaCloseTimer);
+                ynLiveJmaCloseTimer = null;
+                ynLiveJmaTimerEventId = null;
+                wolfxEewLifecycle.delete(liveId);
+            }
+            for (let i = 0; i < events.length; i++) {
+                const ev = events[i];
+                if (ev && ev.isEew && matches(ev)) {
+                    events[i] = { ...ev, isCancel:true, isFinal:true, isTaupEew:false, reportConfidence:'cancelado' };
+                }
+            }
+            const visualKey = String(waveAnimationEventKey || '');
+            const cancelledVisualId = `jma-eew-${eid}`;
+            if (visualKey.startsWith(cancelledVisualId + '|')) {
+                for (const layer of [waveAnimationMarker, wavePCircle, waveSCircle]) {
+                    if (layer && waveLayer?.hasLayer(layer)) waveLayer.removeLayer(layer);
+                }
+                waveAnimationMarker = null; wavePCircle = null; waveSCircle = null;
+                waveAnimationEventKey = '';
+                removedCurrentVisual = true;
+            }
+            if (removedCurrentVisual && waveMode) {
+                // Redibujar el siguiente evento válido, sin apagar globalmente
+                // las ondas que puedan pertenecer a otro EEW.
+                try { renderWaveMode(); } catch (_) {}
+                try { if (waveMode) startWaveAnimation(); } catch (_) {}
+            }
+            return true;
+        }
+
         function handleJmaEew(data, fromSocket = false, announceLiveHttp = false) {
             if (!data || data.type === 'heartbeat') return;
+            const raw = data;
+            const transport = fromSocket ? 'WebSocket' : 'HTTP';
+            const rawKeys = raw && typeof raw === 'object' ? Object.keys(raw) : [];
             // Acepta tanto el objeto directo de Wolfx/JMA como el envoltorio
             // EventID + Serial + eew_raw usado por el feed que estamos integrando.
             data = normalizeJmaEewRecord(data);
-            if (!data || !data.EventID) return;
+            if (!data) {
+                jmaEewDiagnostic({source:'JMA/Wolfx',transport,type:raw?.type||'',rawKeys,normalized:false,reason:'payload no es un objeto EEW normalizable'});
+                return;
+            }
+            if (!data.EventID && !data.OriginTime && !data.ReportTime && !data.AnnouncedTime) {
+                jmaEewDiagnostic({source:'JMA/Wolfx',transport,type:data.type||'',rawKeys:data._jmaRawKeys||rawKeys,eventId:data.EventID||'',serial:data.Serial||'',method:data.Method||'',alertType:data.AlertType||'',status:data.ReportStatus||'',normalized:true,reason:'faltan EventID y referencias temporales para identificar el reporte'});
+                return;
+            }
             const newTs = jmaEewReportTime(data);
             const oldTs = jmaEewReportTime(jmaEewData);
             const oldReportKey = jmaEewEventKey(jmaEewData);
             const newReportKey = jmaEewEventKey(data);
-            const diag = window.__jmaEewWaveDiag = window.__jmaEewWaveDiag || { last:'', history:[] };
-            const note = (msg, extra={}) => { diag.last = msg; diag.lastAt = new Date().toISOString(); diag.history.push({msg, ...extra}); if (diag.history.length > 30) diag.history.shift(); };
-            note('handle', {fromSocket, key:newReportKey, fresh:jmaEewIsFresh(data), final:data.isFinal, cancel:data.isCancel, localized:Number.isFinite(Number(data.Latitude))&&Number.isFinite(Number(data.Longitude))});
+            const note = (msg, extra={}) => jmaEewDiagnostic({source:'JMA/Wolfx',transport,type:data.type||'',method:data.Method||'',alertType:data.AlertType||'',eventId:data.EventID||'',serial:data.Serial||'',magnitude:data.Magnitude??'',depth:data.Depth??'',latitude:Number.isFinite(Number(data.Latitude))?Number(data.Latitude):null,longitude:Number.isFinite(Number(data.Longitude))?Number(data.Longitude):null,originTime:data.OriginTime||'',reportStatus:data.ReportStatus||'',isFinal:!!data.isFinal,isCancel:!!data.isCancel,ageMs:jmaEewReportTime(data)?Date.now()-jmaEewReportTime(data):null,normalized:true,rawKeys:data._jmaRawKeys||[],decision:msg,...extra});
+            note('received', {fromSocket, key:newReportKey, fresh:jmaEewIsFresh(data), final:data.isFinal, cancel:data.isCancel, localized:Number.isFinite(Number(data.Latitude))&&Number.isFinite(Number(data.Longitude)), methodRecognized:data.Method||'unidentified'});
             const isInitialReport = !jmaEewInitialized;
             if (isInitialReport) jmaEewInitialAlertKey = newReportKey;
             const isNewReport = !!jmaEewData && newReportKey !== oldReportKey && newReportKey !== '-';
             const oldTerminalState = !!(jmaEewData && (jmaEewData.isFinal || jmaEewData.isCancel));
             const newTerminalState = !!(data.isFinal || data.isCancel);
             const terminalStateChanged = !!jmaEewData && !oldTerminalState && newTerminalState;
+            if (!(fromSocket || !jmaEewFromSocket || newTs >= oldTs)) {
+                note('report rejected', {reason:'older HTTP report superseded by current WebSocket report',reportTime:newTs,acceptedCurrentReportTime:oldTs});
+                return;
+            }
             if (fromSocket || !jmaEewFromSocket || newTs >= oldTs) {
                 jmaEewData = data;
                 jmaEewFromSocket = fromSocket;
                 const eewLat = Number(data.Latitude), eewLon = Number(data.Longitude);
-                if (jmaEewIsFresh(data) && !data.isCancel && Number.isFinite(eewLat) && Number.isFinite(eewLon)) {
-                    const eewId = `jma-eew-${data.EventID || data.OriginTime || data.AnnouncedTime || 'active'}`;
-                    const eewTs = parseJmaEewTime(data.OriginTime || data.AnnouncedTime);
+                if (jmaEewIsFresh(data) && !data.isCancel) {
+                    const eewId = `jma-eew-${data.EventID || data.OriginTime || data.AnnouncedTime || newReportKey || 'active'}`;
+                    const hasCoordinates = Number.isFinite(eewLat) && Math.abs(eewLat)<=90 && Number.isFinite(eewLon) && Math.abs(eewLon)<=180;
+                    const eewTs = parseJmaEewTime(data.OriginTime);
                     const magNum = Number(data.Magnitude ?? data.Magunitude);
                     // Magnitudes extremas en EEW (p.ej. M9.9 de prueba/error) se marcan como inciertas.
                     const extremeMag = Number.isFinite(magNum) && magNum >= 9.0;
                     const eewEvent = {
-                        id: eewId, lat:eewLat, lon:eewLon,agency:'JMA EEW',isEew:true,listFromEew:true,isFinal:!!data.isFinal,isCancel:!!data.isCancel,
-                        place:data.Hypocenter || 'Japón',
+                        id: eewId, ...(hasCoordinates ? {lat:eewLat,lon:eewLon} : {}), agency:'JMA EEW',isEew:true,listFromEew:true,isFinal:!!data.isFinal,isCancel:!!data.isCancel,
+                        place:data.Hypocenter || (hasCoordinates ? 'Japón' : 'Ubicación no disponible'),
                         time: eewTs ? formatTime(eewTs) : (data.OriginTime || data.AnnouncedTime || ''),
-                        ts: eewTs, waveOriginTs:eewTs, isTaupEew:true,hasPublishedOrigin:!!eewTs,eewMaxAgeMs:12*60*1000,
+                        ts: eewTs, reportReceivedTs:jmaEewReportTime(data), waveOriginTs:eewTs, isTaupEew:!!(hasCoordinates&&eewTs),hasPublishedOrigin:!!eewTs,eewMaxAgeMs:12*60*1000,
+                        eewEventId:String(data.EventID||''), reportNumber:data.Serial||'', raw:{...data},
                         mag:magnitudeDisplay(data.Magnitude ?? data.Magunitude),
                         depth:data.Depth != null ? `${data.Depth} km` : '—',
                         intensity:data.MaxIntensity || '—', agency:'JMA EEW',
@@ -21093,13 +21298,17 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
                         eewExtremeMag: extremeMag,
                         colorClass:intensityClass(data.MaxIntensity || 0)
                     };
-                    notifyRealEarthquakePriority(eewEvent);
+                    const terminalStationOnly = !!data.isFinal;
+                    if (hasCoordinates && !terminalStationOnly) notifyRealEarthquakePriority(eewEvent);
                     showEarthquakeTicker(eewEvent, extremeMag ? 'JMA EEW · magnitud extrema (revisar)' : 'JMA EEW', { liveUpdate:true });
-                    try { openEewJapanStationsView(eewEvent, { showToast: !extremeMag }); } catch (_) {}
+                    const stationDecision = jmaEewStationViewDecision(data);
+                    const stationOpened = stationDecision.eligible ? !!openEewJapanStationsView(eewEvent, { showToast: !extremeMag, activateWaves:false }) : false;
+                    note('event displayed', {eventId:data.EventID||'',viewJapan:stationOpened,viewReason:stationOpened?'station view opened':stationDecision.reason});
                     try { window.__sesnaEewBannerSync?.(); } catch (_) {}
                     try {
                         const listId = 'jma-eewlist-' + (data.EventID || eewTs || 'active');
-                        const listEv = { ...eewEvent, id:listId, agency:'JMA', source: extremeMag ? 'JMA · EEW magnitud extrema (preliminar)' : 'JMA · aviso temprano (preliminar)', isTaupEew:false, listFromEew:true, estimated:extremeMag, reportNumber:data.Serial || '' };
+                        const listState = data.isFinal ? 'reporte final' : (data.isCancel ? 'cancelado' : 'aviso temprano');
+                        const listEv = { ...eewEvent, id:listId, agency:'JMA', source: extremeMag ? 'JMA · EEW magnitud extrema (preliminar)' : `JMA · ${listState}`, isTaupEew:false, listFromEew:true, estimated:extremeMag, reportNumber:data.Serial || '' };
                         const li = events.findIndex(x => x && x.id === listId);
                         if (li >= 0) events[li] = { ...events[li], ...listEv }; else events.unshift(listEv);
                         renderEvents();
@@ -21108,20 +21317,10 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
                         try { showRegionToast('⚠️ JMA EEW con magnitud extrema · esperar revisión/cancelación'); } catch (_) {}
                     }
                 } else if (data.isCancel) {
+                    note('cancel received', {eventId:data.EventID||'',reason:'cancel packet: existing JMA lifecycle handles closure; no new station view or waves'});
                     // Cancelación EEW (como el M9.9 retirado de inmediato): limpiar prioridad y marcar lista.
                     try {
-                        const eid = String(data.EventID || '');
-                        const eewTs = parseJmaEewTime(data.OriginTime || data.AnnouncedTime);
-                        for (let i = 0; i < events.length; i++) {
-                            const ev = events[i];
-                            if (!ev) continue;
-                            const same = (eid && String(ev.eewEventId || '').includes(eid)) ||
-                                (ev.listFromEew && eid && String(ev.id || '').includes(eid)) ||
-                                (ev.listFromEew && eewTs && Math.abs((parseTs(ev.ts)||0) - eewTs) < 180000);
-                            if (same || (ev.agency === 'JMA EEW' && eid && String(ev.id||'').includes(eid))) {
-                                events[i] = { ...ev, isCancel:true, isFinal:true, reportConfidence:'cancelado', source:(ev.source||'') + ' · cancelado', isTaupEew:false };
-                            }
-                        }
+                        cancelJmaEewVisuals(data.EventID);
                         renderEvents();
                     } catch (_) {}
                     try {
@@ -21172,57 +21371,15 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
                 }
                 // Ondas automáticas: EEW fresco con epicentro (incluye 予報,
                 // sismos profundos y Ogasawara / islas lejanas).
-                const waveOriginTs = parseJmaEewTime(data.OriginTime || data.AnnouncedTime || data.ReportTime);
-                const waveOriginAge = waveOriginTs ? Date.now() - waveOriginTs : Infinity;
-                const magForWave = Number(data.Magnitude ?? data.Magunitude);
+                const waveDecision = jmaEewWaveDecision(data);
+                const waveOriginTs = waveDecision.originTs;
+                const waveOriginAge = waveDecision.originAgeMs;
                 const depthForWave = Number(String(data.Depth != null ? data.Depth : '').replace(/[^\d.]/g, ''));
-                const strongEew = (Number.isFinite(magForWave) && magForWave >= 6) ||
-                    (Number.isFinite(depthForWave) && depthForWave >= 150);
-                // Ventana de ondas: 12 min normal, 18 min si es fuerte/profundo
-                // (los EEW de Ogasawara se revisan varios minutos con M creciente).
-                const waveMaxAgeMs = strongEew ? 18 * 60 * 1000 : 12 * 60 * 1000;
-                // Mientras no esté cancelado y el origen sea reciente, mostrar
-                // ondas aunque el paquete marque isFinal (a veces Wolfx marca
-                // final antes de la intensidad oficial en la lista).
-                const shouldShowWaves = jmaEewIsFresh(data) && !data.isCancel && hasEpicenter &&
-                    waveOriginAge >= -120000 && waveOriginAge <= waveMaxAgeMs &&
-                    `jma-eew-${data.EventID || data.OriginTime || data.AnnouncedTime || 'active'}` !== jmaWaveSuppressedEventId;
+                const waveMaxAgeMs = waveDecision.maxAgeMs;
+                const shouldShowWaves = waveDecision.eligible;
                 const waveReportKey = newReportKey !== '-' ? newReportKey : `${data.EventID || ''}-${data.AnnouncedTime || ''}`;
-                // Si se abre el HTML durante un sismo, el primer snapshot puede
-                // contener ya el EEW final. Recuperar sus ondas mientras el origen
-                // siga reciente y todavía no haya llegado la intensidad final JMA.
-                const recoveredEventKey = String(data.EventID || data.OriginTime || data.AnnouncedTime || '');
-                const recoveredWaveId = recoveredEventKey ? `jma-eew-${recoveredEventKey}` : '';
-                const currentWave = typeof getCurrentWaveEvent === 'function' ? getCurrentWaveEvent() : null;
-                const alreadyTrackingSameWave = !!(waveMode && recoveredWaveId &&
-                    (String(currentWave?.id || '') === recoveredWaveId || String(ynLiveJmaEvent?.id || '') === recoveredWaveId));
-                const suppressedWaveId = String(typeof jmaWaveSuppressedEventId !== 'undefined' ? jmaWaveSuppressedEventId : '');
-                const resumeRecentFinal = data.isFinal && !data.isCancel && hasEpicenter && !!recoveredEventKey &&
-                    waveOriginAge >= -120000 && waveOriginAge <= 5 * 60 * 1000 &&
-                    !events.some(ev => jmaIntensityReportMatchesActiveEew(ev)) &&
-                    jmaEewRecentFinalRecoveredKey !== recoveredEventKey &&
-                    !alreadyTrackingSameWave && suppressedWaveId !== recoveredWaveId;
-                if (resumeRecentFinal) {
-                    const recoveredWave = {
-                        id:recoveredWaveId,
-                        lat:Number(data.Latitude), lon:Number(data.Longitude), place:data.Hypocenter || 'Japón',
-                        time:waveOriginTs ? formatTime(waveOriginTs) : (data.OriginTime || data.AnnouncedTime || ''),
-                        waveTime:waveOriginTs ? formatTime(waveOriginTs) : (data.OriginTime || data.AnnouncedTime || ''),
-                        ts:waveOriginTs, waveOriginTs, mag:magnitudeDisplay(data.Magnitude ?? data.Magunitude),
-                        depth:data.Depth != null ? `${data.Depth} km` : '—', agency:'JMA EEW', isTaupEew:true,
-                        epicenterConfirmed:data.epicenterConfirmed === true,
-                        reportConfidence:'preliminar', report:data.Serial || '—', status:'EEW reciente · ondas reanudadas',
-                        raw:{ ...data, WarnArea:Array.isArray(data.WarnArea) ? data.WarnArea : [] },eewEventId:String(data.EventID||''),reportNumber:data.Serial||data.ReportNumber||'',requirePublishedDepthForEstimate:true
-                    };
-                    try { scheduleDynamicEewIntensity(recoveredWave,'EEW JMA recuperado'); } catch (_) {}
-                    try {
-                        const resumed = typeof openJapanForRealJmaQuake === 'function' && openJapanForRealJmaQuake(recoveredWave);
-                        if (resumed) {
-                            jmaEewRecentFinalRecoveredKey = recoveredEventKey;
-                            note('resume recent final', { event:recoveredEventKey, originAgeMs:waveOriginAge });
-                        }
-                    } catch (_) {}
-                }
+                // Los Final se conservan en la vista/lista, pero no se reanudan ondas.
+                if (!shouldShowWaves) note('waves not activated', {eventId:data.EventID||'',waveReason:waveDecision.reason});
                 if (shouldShowWaves && waveReportKey && waveReportKey !== '-') {
                     const reportAge = Date.now() - jmaEewReportTime(data);
                     // 90s era demasiado estricto: una reconexión de socket o un
@@ -21239,6 +21396,7 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
                         const needWaves = !waveMode || waveReportKey !== jmaEewLastWaveKey || isNewReport || fromSocket || isInitialReport;
                         jmaEewLastWaveKey = waveReportKey;
                         if (needWaves) {
+                            note('waves activated', {eventId:data.EventID||'',waveReason:waveDecision.reason,waveOriginAgeMs:waveOriginAge});
                             // Prioridad absoluta: salir de meteorología / otros apartados
                             // y abrir ondas + estaciones aunque el epicentro sea Ogasawara.
                             try {
@@ -21247,14 +21405,13 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
                                 document.getElementById('jmaWeatherAlertPanel')?.style.setProperty('display','none','important');
                                 jmaWeatherAlertMode = false;
                             } catch (_) {}
-                            try { activateWaveMode(false); } catch (_) {}
                             try {
                                 const liveEv = {
                                     id: `jma-eew-${data.EventID || data.OriginTime || data.AnnouncedTime || 'active'}`,
                                     lat: Number(data.Latitude), lon: Number(data.Longitude),
                                     place: data.Hypocenter || 'Japón',
-                                    ts: parseJmaEewTime(data.OriginTime || data.AnnouncedTime),
-                                    time: formatTime(parseJmaEewTime(data.OriginTime || data.AnnouncedTime)),
+                                    ts: parseJmaEewTime(data.OriginTime),
+                                    time: data.OriginTime ? formatTime(parseJmaEewTime(data.OriginTime)) : '',
                                     mag: magnitudeDisplay(data.Magnitude ?? data.Magunitude),
                                     depth: data.Depth != null ? `${data.Depth} km` : '—',
                                     agency: 'JMA EEW',
@@ -21265,11 +21422,15 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
                                     isTaupEew: true,
                                     waveOriginTs: waveOriginTs || parseJmaEewTime(data.OriginTime || data.AnnouncedTime),
                                     eewEventId:String(data.EventID||''),reportNumber:data.Serial||data.ReportNumber||'',
+                                    eewEventId:String(data.EventID||''), acceptedAt:Date.now(),
                                     raw:{...data},requirePublishedDepthForEstimate:true
                                 };
+                                jmaEewWaveCandidate = liveEv;
+                                const started = activateWaveMode(false, {openStations:false,expectedEventId:String(data.EventID||'')});
+                                if (!started) note('wave start failed', {eventId:data.EventID||'',reason:'animation did not confirm the selected JMA EEW visual'});
                                 try{scheduleDynamicEewIntensity(liveEv,'actualización EEW JMA');}catch(_){}
-                                if (typeof openJapanForRealJmaQuake === 'function') openJapanForRealJmaQuake(liveEv);
-                                else if (typeof openEewJapanStationsView === 'function') openEewJapanStationsView(liveEv, { showToast: true });
+                                // La vista de estaciones ya se decidió por separado
+                                // al recibir el reporte; no volver a abrirla aquí.
                                 try {
                                     if (Number.isFinite(liveEv.lat) && Number.isFinite(liveEv.lon) && map) {
                                         const z = Number.isFinite(depthForWave) && depthForWave >= 150 ? 5 : 6;
@@ -28258,7 +28419,11 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
         document.addEventListener('webkitfullscreenchange', () => { try { map.invalidateSize({ pan: false }); } catch (_) {} });
 
         document.getElementById('btnTyphoon').addEventListener('click', () => {
+            const openingManually = !typhoonMode;
             clearTimeout(jmaTyphoonAutoCloseTimer);jmaTyphoonAutoCloseTimer=null;
+            clearTimeout(typhoonAutoCloseTimer);typhoonAutoCloseTimer=null;
+            typhoonManuallyOpened = openingManually;
+            if (openingManually) { clearTimeout(autoSectionReturnTimer); autoSectionReturnTimer=null; }
             if (!suppressNextModeSound) playUiSound('success');
             suppressNextModeSound = false;
             typhoonMode = !typhoonMode;
@@ -28549,13 +28714,9 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
         niedDerivedMetricPane.style.zIndex = 515;
         niedDerivedMetricPane.style.pointerEvents = 'auto';
         niedDerivedMetricPane.style.display = 'none';
-        // NIED: ubicaciones de estaciones marinas desde el catálogo oficial; no es telemetría en vivo.
-        // Catálogo consultado el 2026-10-02: https://www.seafloor.bosai.go.jp/st_info/
-        const NIED_SEAFLOOR_STATIONS = [["S-net","N.S1N01",35.8968,141.0535,169],["S-net","N.S1N02",35.8424,141.3772,1466],["S-net","N.S1N03",35.7203,141.6451,2591],["S-net","N.S1N04",35.6036,141.9041,2612],["S-net","N.S1N05",35.4047,142.0531,5836],["S-net","N.S1N06",35.2277,141.8692,5567],["S-net","N.S1N07",35.2773,141.5902,3285],["S-net","N.S1N08",35.4536,141.3898,1387],["S-net","N.S1N09",35.227,141.3068,1583],["S-net","N.S1N10",35.0925,141.2021,2554],["S-net","N.S1N11",35.1203,140.9682,1670],["S-net","N.S1N12",35.0228,140.8091,1239],["S-net","N.S1N13",34.8788,140.9627,2210],["S-net","N.S1N14",34.6407,141.0907,4861],["S-net","N.S1N15",34.5256,141.3512,6569],["S-net","N.S1N16",34.3686,141.5402,6978],["S-net","N.S1N17",34.1956,141.3341,6805],["S-net","N.S1N18",34.262,141.0316,5111],["S-net","N.S1N19",34.2269,140.7311,3274],["S-net","N.S1N20",34.2592,140.4159,2513],["S-net","N.S1N21",34.4231,140.203,2869],["S-net","N.S1N22",34.6443,140.0906,2512],["S-net","N.S2N01",37.8428,141.3845,102],["S-net","N.S2N02",37.6922,141.6387,239],["S-net","N.S2N03",37.7073,141.965,462],["S-net","N.S2N04",37.6739,142.2975,786],["S-net","N.S2N05",37.6016,142.6236,1781],["S-net","N.S2N06",37.5259,142.935,2945],["S-net","N.S2N07",37.429,143.2266,4767],["S-net","N.S2N08",37.222,143.07,4353],["S-net","N.S2N09",37.0741,142.8188,4226],["S-net","N.S2N10",37.0948,142.4979,2417],["S-net","N.S2N11",37.1931,142.1998,1447],["S-net","N.S2N12",37.2772,141.879,591],["S-net","N.S2N13A",37.3003,141.5709,212],["S-net","N.S2N14",37.0952,141.3703,162],["S-net","N.S2N15",36.8344,141.3307,264],["S-net","N.S2N16",36.662,141.5207,874],["S-net","N.S2N17",36.6337,141.8389,2247],["S-net","N.S2N18",36.6824,142.1445,2460],["S-net","N.S2N19",36.5986,142.4389,3425],["S-net","N.S2N20",36.3885,142.6164,5770],["S-net","N.S2N21",36.1577,142.5553,6230],["S-net","N.S2N22",35.9463,142.4014,4492],["S-net","N.S2N23",35.9677,142.1138,3881],["S-net","N.S2N24",35.9976,141.7944,2310],["S-net","N.S2N25",36.0729,141.5095,1887],["S-net","N.S2N26",36.1442,141.2021,730],["S-net","N.S3N01",39.4497,142.4578,940],["S-net","N.S3N02",39.3746,142.7918,1622],["S-net","N.S3N03",39.3231,143.1206,1890],["S-net","N.S3N04",39.2958,143.4544,2490],["S-net","N.S3N05",39.1906,143.7499,4308],["S-net","N.S3N06",39.0459,143.9305,5440],["S-net","N.S3N07",38.8308,143.7846,5231],["S-net","N.S3N08",38.7826,143.4769,2465],["S-net","N.S3N09",38.7739,143.1437,1779],["S-net","N.S3N10",38.8668,142.8212,1310],["S-net","N.S3N11",38.9349,142.4873,1168],["S-net","N.S3N12",38.8412,142.1816,558],["S-net","N.S3N13",38.5901,142.1816,573],["S-net","N.S3N14",38.4993,142.5002,1092],["S-net","N.S3N15",38.4487,142.8376,1472],["S-net","N.S3N16",38.4262,143.1703,2420],["S-net","N.S3N17",38.3978,143.5139,3020],["S-net","N.S3N18",38.3063,143.781,5528],["S-net","N.S3N19",38.0594,143.7441,5591],["S-net","N.S3N20",37.9311,143.5675,5225],["S-net","N.S3N21",37.9713,143.2454,2779],["S-net","N.S3N22",37.9838,142.9072,1645],["S-net","N.S3N23",38.027,142.5735,1220],["S-net","N.S3N24",38.0569,142.234,849],["S-net","N.S3N25",38.0972,141.8957,230],["S-net","N.S3N26",38.106,141.5572,128],["S-net","N.S4N01",40.7881,141.7895,139],["S-net","N.S4N02",40.9069,142.1057,858],["S-net","N.S4N03",41.0156,142.4314,1425],["S-net","N.S4N04",41.0762,142.7706,1798],["S-net","N.S4N05",41.0443,143.1138,1940],["S-net","N.S4N06",40.9718,143.4481,1970],["S-net","N.S4N07",40.882,143.7746,2613],["S-net","N.S4N08",40.7805,144.0905,5060],["S-net","N.S4N09",40.5521,144.1332,5095],["S-net","N.S4N10",40.4327,143.8887,3897],["S-net","N.S4N11",40.4353,143.543,2273],["S-net","N.S4N12",40.4515,143.2015,1711],["S-net","N.S4N13",40.5196,142.9617,1537],["S-net","N.S4N14",40.5927,142.634,1393],["S-net","N.S4N15",40.5933,142.2844,816],["S-net","N.S4N16",40.3295,142.2673,559],["S-net","N.S4N17",40.1165,142.3926,681],["S-net","N.S4N18",40.1088,142.6222,969],["S-net","N.S4N19",40.0904,142.9695,1256],["S-net","N.S4N20",40.0743,143.321,1329],["S-net","N.S4N21",40.0863,143.6572,2456],["S-net","N.S4N22",40.026,143.9547,4107],["S-net","N.S4N23",39.7718,143.9259,4358],["S-net","N.S4N24",39.6388,143.7154,2936],["S-net","N.S4N25",39.6976,143.3749,2228],["S-net","N.S4N26",39.7245,143.0384,1569],["S-net","N.S4N27",39.7445,142.6903,914],["S-net","N.S4N28",39.7385,142.3408,569],["S-net","N.S5N01",42.7688,145.7115,2052],["S-net","N.S5N02",42.6403,145.4063,2042],["S-net","N.S5N03",42.4802,145.1433,1985],["S-net","N.S5N04",42.2286,145.204,3149],["S-net","N.S5N05",42.0615,145.437,3813],["S-net","N.S5N06",41.884,145.6544,5619],["S-net","N.S5N07",41.6637,145.5291,5953],["S-net","N.S5N08",41.5301,145.2483,5980],["S-net","N.S5N09",41.521,144.905,5100],["S-net","N.S5N10",41.6541,144.6716,4103],["S-net","N.S5N11",41.9072,144.6955,2093],["S-net","N.S5N12",42.0784,144.6375,1772],["S-net","N.S5N13",41.9792,144.3445,1607],["S-net","N.S5N14",41.7475,144.1779,1592],["S-net","N.S5N15",41.4961,144.0879,1950],["S-net","N.S5N16",41.3742,143.8006,2380],["S-net","N.S5N17",41.3643,143.453,2023],["S-net","N.S5N18",41.4351,143.1264,1509],["S-net","N.S5N19",41.5607,142.8177,986],["S-net","N.S5N20",41.6095,142.4787,1165],["S-net","N.S5N21",41.4248,142.2193,1189],["S-net","N.S5N22",41.1989,142.0271,1029],["S-net","N.S5N23",40.954,141.8762,529],["S-net","N.S6N01",42.8064,146.0211,2427],["S-net","N.S6N02",42.5807,146.078,2830],["S-net","N.S6N03",42.0943,146.2316,5710],["S-net","N.S6N04",41.6653,146.1747,6950],["S-net","N.S6N05",41.3717,145.6053,6680],["S-net","N.S6N06",40.8999,145.3929,6012],["S-net","N.S6N07",40.536,144.9381,6160],["S-net","N.S6N08",40.0319,144.8089,5900],["S-net","N.S6N09",39.5172,144.7191,6054],["S-net","N.S6N10",39.0072,144.5915,6160],["S-net","N.S6N11",38.499,144.4536,6118],["S-net","N.S6N12",37.9879,144.3357,6111],["S-net","N.S6N13",37.4862,144.1757,6174],["S-net","N.S6N14",37.012,143.9557,6228],["S-net","N.S6N15",36.5748,143.6059,6433],["S-net","N.S6N16",36.1262,143.2823,6513],["S-net","N.S6N17",35.6745,142.9688,6625],["S-net","N.S6N18",35.2114,142.6799,6319],["S-net","N.S6N19",34.7118,142.5208,6284],["S-net","N.S6N20",34.2604,142.2389,7830],["S-net","N.S6N21",33.9619,141.7291,7797],["S-net","N.S6N22",33.8601,141.1281,3941],["S-net","N.S6N23",33.9448,140.5189,1723],["S-net","N.S6N24",34.1773,139.9814,1276],["S-net","N.S6N25",34.6696,139.8167,2411],["DONET1","M.KMA01",33.8048,136.557,2039],["DONET1","M.KMA02",33.7524,136.6488,2011],["DONET1","M.KMA03",33.6484,136.6037,2063],["DONET1","M.KMA04",33.6781,136.4674,2054],["DONET1","M.KMB05",33.4772,136.9264,1998],["DONET1","M.KMB06",33.3584,136.9216,2499],["DONET1","M.KMB07",33.3613,136.8072,1980],["DONET1","M.KMB08",33.4664,136.8039,1924],["DONET1","M.KMC09",33.0584,136.8313,3511],["DONET1","M.KMC10",33.0533,136.9335,4247],["DONET1","M.KMC11",33.0033,136.779,4378],["DONET1","M.KMC12",33.1279,136.8188,3784],["DONET1","M.KMC21",32.9506,136.7417,4449],["DONET1","M.KMD13",33.2201,136.6903,2441],["DONET1","M.KMD14",33.1727,136.577,2350],["DONET1","M.KMD15",33.2331,136.5631,1909],["DONET1","M.KMD16",33.3045,136.5958,1970],["DONET1","M.KME17",33.485,136.4451,2054],["DONET1","M.KME18",33.386,136.3828,2052],["DONET1","M.KME19",33.4459,136.2564,1909],["DONET1","M.KME20",33.5444,136.3325,1977],["DONET1","M.KME22",33.3303,136.2702,1841],["DONET2","M.MRA01",33.4085,134.7449,1375],["DONET2","M.MRA02",33.3393,134.8641,1360],["DONET2","M.MRA03",33.249,134.7691,1352],["DONET2","M.MRA04",33.3205,134.6724,1372],["DONET2","M.MRB05",33.3222,135.0667,1470],["DONET2","M.MRB06",33.2252,135.1698,1388],["DONET2","M.MRB07",33.1755,135.0964,1077],["DONET2","M.MRB08",33.275,134.9869,1262],["DONET2","M.MRC09",33.228,135.4585,1555],["DONET2","M.MRC10",33.1251,135.5249,1720],["DONET2","M.MRC11",33.0837,135.4121,2001],["DONET2","M.MRC12",33.1752,135.3414,1317],["DONET2","M.MRD13",33.1594,135.7557,2353],["DONET2","M.MRD14",33.1359,135.8584,2398],["DONET2","M.MRD15",33.142,135.9586,2244],["DONET2","M.MRD16",33.0299,135.8401,2415],["DONET2","M.MRD17",33.0915,135.7144,2700],["DONET2","M.MRE18",32.927,135.7747,3548],["DONET2","M.MRE19",32.892,135.8336,3456],["DONET2","M.MRE20",32.8017,135.7733,3603],["DONET2","M.MRE21",32.8603,135.667,3534],["DONET2","M.MRF22",32.988,135.225,2104],["DONET2","M.MRF23",32.8827,135.3082,2646],["DONET2","M.MRF24",32.8545,135.1916,2393],["DONET2","M.MRF25",32.8919,135.1538,2278],["DONET2","M.MRG26",32.7615,134.5167,1855],["DONET2","M.MRG27",32.7089,134.5996,2494],["DONET2","M.MRG28",32.6251,134.5164,2499],["DONET2","M.MRG29",32.6752,134.4334,2141],["Sagami Bay","N.ST1H",34.5956,139.9183,2197],["Sagami Bay","N.ST2H",34.7396,139.8393,2339],["Sagami Bay","N.ST3H",34.7983,139.6435,902],["Sagami Bay","N.ST4H",34.8931,139.5711,933],["Sagami Bay","N.ST5H",34.9413,139.4213,1486],["Sagami Bay","N.ST6H",35.0966,139.3778,1130],["N-net","N.NAE01",32.7687,134.2661,1563],["N-net","N.NAE02",32.4154,134.3346,2598],["N-net","N.NAE03",32.1712,134.274,3920],["N-net","N.NAE04",32.0348,133.9599,3691],["N-net","N.NAE05",31.7849,133.6553,4294],["N-net","N.NAE06",31.5924,133.3376,4556],["N-net","N.NAE07",31.5061,133.1083,3286],["N-net","N.NAE08",31.288,132.7613,3280],["N-net","N.NAE09",31.1387,132.324,1815],["N-net","N.NAE10",31.1019,131.913,1399],["N-net","N.NAE11",31.3942,132.0465,1189],["N-net","N.NAE12",31.5881,132.4506,2278],["N-net","N.NAE13",31.7433,132.8114,2360],["N-net","N.NAE14",31.9701,133.0367,2014],["N-net","N.NAE15",32.1818,132.7916,1380],["N-net","N.NAE16",31.9429,132.5561,1812],["N-net","N.NAE17",31.7484,132.4602,2403],["N-net","N.NAE18",31.3256,131.7281,845],["N-net","N.NBE01",33.277,134.331,1174],["N-net","N.NBE02",33.0371,134.2809,860],["N-net","N.NBE03",32.8219,134.0795,880],["N-net","N.NBE04",32.9192,133.6611,1020],["N-net","N.NBE05",32.5604,133.7211,974],["N-net","N.NBE06",32.4456,134.0502,1831],["N-net","N.NBE07",32.2196,133.956,2463],["N-net","N.NBE08",32.1551,133.7177,2125],["N-net","N.NBE09",31.9977,133.3759,1960],["N-net","N.NBE10",32.149,133.2199,1299],["N-net","N.NBE11",32.4758,133.4332,989],["N-net","N.NBE12",32.3797,133.1779,1080],["N-net","N.NBE13",32.3314,132.8255,1100],["N-net","N.NBE14",32.452,132.5221,1488],["N-net","N.NBE15",32.3444,132.2392,1547],["N-net","N.NBE16",31.9702,132.1595,1575],["N-net","N.NBE17",31.7707,132.0585,1326],["N-net","N.NBE18",31.6569,131.7726,471]];
+        // Capa legacy vacía, conservada solo para compatibilidad con selectores antiguos.
         let niedSeafloorLayer = null, niedSeafloorRenderer = null;
         function syncNiedSeafloorVisibility() {
-            // Se retira la capa S-net/DONET/N-net: solo contiene posiciones de catálogo,
-            // sin telemetría en vivo, y no debe parecer una red activa en el mapa.
             try { if (niedSeafloorLayer && map.hasLayer(niedSeafloorLayer)) map.removeLayer(niedSeafloorLayer); } catch (_) {}
         }
         // Capa Leaflet (canvas) — más fiable que el overlay HTML en content://
@@ -29185,7 +29346,15 @@ function ynRenderMotionGroups(groups,primaryAlert=document.getElementById('ynEar
             return [[minLat - latMargin, minLon - lonMargin], [maxLat + latMargin, maxLon + lonMargin]];
         }
 
+        function jmaIntensityReportSelectedForMap() {
+            const ev = Array.isArray(events) ? events.find(item => String(item?.id) === String(selectedEventId)) : null;
+            if (!ev || !/jma/i.test(`${ev.agency || ''} ${ev.source || ''}`) || /eew|test/i.test(`${ev.agency || ''} ${ev.source || ''}`)) return false;
+            return isJmaPreliminaryIntensityReport(ev)
+                || isJmaFinalIntensityReportWithEpicenter(ev)
+                || (ev.jmaOfficialIntensityReport === true && Array.isArray(ev.jmaIntensityAreas) && ev.jmaIntensityAreas.length > 0);
+        }
         function ynVisible() {
+            if (jmaIntensityReportSelectedForMap()) return false;
             const layout = document.getElementById('mainLayout');
             // En JMA meteorología se ocultan en reposo, pero reaparecen si un
             // sismo abre también la vista Japón/ondas.
@@ -30110,6 +30279,10 @@ function ynRenderMotionGroups(groups,primaryAlert=document.getElementById('ynEar
 
         function ynEnsureLeafletLayer() {
             if (typeof map === 'undefined' || !map) return false;
+            if (jmaIntensityReportSelectedForMap()) {
+                try { if (ynLeafletLayer && map.hasLayer(ynLeafletLayer)) map.removeLayer(ynLeafletLayer); } catch (_) {}
+                return true;
+            }
             if (!ynLeafletRenderer) {
                 try { ynLeafletRenderer = L.canvas({ pane:'yahooNiedStationsPane', padding:0.5 }); } catch (_) { ynLeafletRenderer = undefined; }
             }
@@ -30282,7 +30455,7 @@ function ynRenderMotionGroups(groups,primaryAlert=document.getElementById('ynEar
                 : (typeof ynHexColor === 'function' ? ynHexColor(code) : '#1428a0');
             const mobile = ynIsMobilePerf();
             const opts = {
-                pane: 'yahooNiedStationsPane',
+                pane: extra.pane || 'yahooNiedStationsPane',
                 interactive: !mobile,
                 radius: mobile ? 3 : 4,
                 fillColor: col,
@@ -30291,7 +30464,8 @@ function ynRenderMotionGroups(groups,primaryAlert=document.getElementById('ynEar
                 opacity: 1,
                 fillOpacity: 0.85
             };
-            if (typeof ynLeafletRenderer !== 'undefined' && ynLeafletRenderer) opts.renderer = ynLeafletRenderer;
+            if (extra.renderer) opts.renderer = extra.renderer;
+            else if (typeof ynLeafletRenderer !== 'undefined' && ynLeafletRenderer && !extra.pane) opts.renderer = ynLeafletRenderer;
             const m = L.circleMarker([lat, lon], opts);
             m._ynCode = code;
             m._ynIsSrev = false;
@@ -31395,7 +31569,21 @@ function ynBuildLeafletMarkers() {
             // confirmado reciente sí abre estaciones y ondas de observación.
             const isJmaEewEvent = /JMA[\s_-]*EEW/i.test(String(ev.agency || ev.source || ''));
             if (isJmaEewEvent && Number.isFinite(ageMs) && ageMs > 7 * 60 * 1000) return false;
-            if (isJmaEewEvent && jmaQuakeIsFinished(ev)) return false;
+            const terminalEew = isJmaEewEvent && jmaQuakeIsFinished(ev);
+            const terminalReportAge = Number.isFinite(Number(ev?.reportReceivedTs)) ? Date.now()-Number(ev.reportReceivedTs) : ageMs;
+            if (terminalEew && options.allowTerminalStations !== true) return false;
+            if (terminalEew) {
+                if (ev.isCancel || terminalReportAge < -120000 || terminalReportAge > 15*60*1000) return false;
+                // Un Final actual puede abrir solo el apartado de estaciones:
+                // no rearma temporizador ni cambia el ciclo de ondas existente.
+                const terminalLayout = document.getElementById('mainLayout');
+                if (!terminalLayout) return false;
+                terminalLayout.classList.add('japan-focus');
+                try { ynMode=true; yahooNiedModeActive=true; ynUseCombinedJapanStations(); if (ynLeafletLayer && map && !map.hasLayer(ynLeafletLayer)) ynLeafletLayer.addTo(map); } catch (_) {}
+                try { map.invalidateSize({pan:false}); if(Number.isFinite(Number(ev.lat))&&Number.isFinite(Number(ev.lon))) setProgrammaticMapView([Number(ev.lat),Number(ev.lon)],6,{force:true,forceAlertZoom:true,overrideJapanPin:true,animate:true,duration:0.7}); } catch (_) {}
+                if (options.showToast !== false) { try { showRegionToast('🇯🇵 EEW JMA final · estaciones Japón'); } catch (_) {} }
+                return true;
+            }
 
             const nextWaveEventId = String(ev.id || `${ev.ts || ev.time || ''}-${ev.lat}-${ev.lon}`);
             if ((ev.isTaupEew || /eew/i.test(String(ev.agency||ev.source||''))) && ev.waveOriginTs) trackWolfxEew(ev,!!ev.officialTerminal);
@@ -31449,7 +31637,7 @@ function ynBuildLeafletMarkers() {
             try { ynStopWaveAnimation(); } catch (_) {}
             // Primero ondas JMA (wave-focus), luego japan-focus encima para estaciones.
             try {
-                if (typeof activateWaveMode === 'function') activateWaveMode(false);
+                if (typeof activateWaveMode === 'function') activateWaveMode(false, {openStations:false});
             } catch (_) {}
             layout?.classList.add('japan-focus', 'wave-focus');
             if (ynButton) { ynButton.style.borderColor = '#4a9eff'; ynButton.style.color = '#8bc5ff'; }
@@ -33044,7 +33232,7 @@ function ynBuildLeafletMarkers() {
 <div class="eqs-grid">
 <label class="eqs-row eqs-intensity-row">Estaciones Japón
 <select id="eqsJapanStations"><option value="yahoo">Yahoo (Kyoshin CDN)</option><option value="nied">NIED oficial (K-NET + KiK-net)</option><option value="knet">Solo K-NET</option><option value="kiknet">Solo KiK-net</option><option value="both">Yahoo + NIED</option><option value="hinet">Hi-net · catálogo (sin telemetría)</option><option value="fnet">F-net · catálogo (sin telemetría)</option><option value="vnet">V-net · sin catálogo/flujo público verificado</option></select></label>
-<div class="eqs-muted eqs-intensity-note">Solo K-NET/KiK-net tienen feed Kyoshin consultado cada 1 s. Hi-net y F-net muestran catálogo sin telemetría. Las estaciones oceánicas S-net, DONET y N-net se retiraron del mapa porque esta vista no recibe sus señales en vivo.</div>
+<div class="eqs-muted eqs-intensity-note">Solo K-NET/KiK-net tienen feed Kyoshin consultado cada 1 s. Hi-net y F-net no tienen telemetría en vivo integrada en esta vista.</div>
 <label class="eqs-row">Detección local de movimiento Yahoo/NIED <input class="eqs-switch" id="eqsMotionDetectionEnabled" type="checkbox"></label>
 <div class="eqs-muted">Activa o pausa cuadros y estimaciones locales basadas en estaciones. No desactiva EEW oficiales.</div>
 <label class="eqs-row">Vista de estaciones NIED
@@ -33692,7 +33880,7 @@ setTimeout(()=>{try{window.__eqApplyFaults?.(!!window.__eqShowFaults);}catch(_){
   const staticModes=new Set(['hinet','fnet']);
   const statusNote=selector.closest('label')?.nextElementSibling;
   let catalogLayer=null, activeMode='', lastVnetNotice=false;
-  function modeNow(){const mode=String(window.__eqJapanStationsSource||selector.value||'nied').toLowerCase();if(['snet','donet','nnet'].includes(mode)){window.__eqJapanStationsSource='nied';selector.value='nied';return'nied';}return mode;}
+  function modeNow(){return String(window.__eqJapanStationsSource||selector.value||'nied').toLowerCase();}
   function japanView(){const el=document.getElementById('mainLayout');return !!(el&&(el.classList.contains('japan-focus')||el.classList.contains('wave-focus')));}
   function rowsFor(mode){
     if(mode==='hinet'||mode==='fnet')return MOWLAS_LAND_STATIONS.filter(r=>r[0].toLowerCase().replace(/-/g,'')===mode);
@@ -33719,7 +33907,7 @@ setTimeout(()=>{try{window.__eqApplyFaults?.(!!window.__eqShowFaults);}catch(_){
       const popup=document.createElement('div');
       const title=document.createElement('strong');title.textContent=`${network} · ${code}`;popup.append(title);
       if(name){const n=document.createElement('div');n.textContent=name;popup.append(n);}
-      if(Number.isFinite(Number(level))){const d=document.createElement('div');d.textContent=/^(S-net|DONET|N-net)$/.test(network)?`Profundidad: ${Number(level).toLocaleString('es-CO')} m`:`Altitud: ${Number(level).toLocaleString('es-CO')} m`;popup.append(d);}
+      if(Number.isFinite(Number(level))){const d=document.createElement('div');d.textContent=/^(DONET|N-net)$/.test(network)?`Profundidad: ${Number(level).toLocaleString('es-CO')} m`:`Altitud: ${Number(level).toLocaleString('es-CO')} m`;popup.append(d);}
       const note=document.createElement('small');note.textContent='Ubicación de catálogo NIED; sin telemetría ni estado en vivo.';popup.append(note);
       marker.bindPopup(popup,{maxWidth:250,autoPanPadding:[24,24]});group.addLayer(marker);
     });
@@ -40200,11 +40388,14 @@ html body #mainLayout > .left-panel #currentEvent.jma-prelim-card .location-labe
     } else {
       const moved=st.lat!==info.lat||st.lon!==info.lon;
       const levelChanged=st.raw!==raw;
-      const popupChanged=st.peak!==info.peak||st.channel!==info.channel||st.net!==info.net||st.country!==info.country;
+      const popupMetaChanged=st.net!==info.net||st.country!==info.country||moved;
       Object.assign(st, info, { raw });
       try { if(moved)st.marker.setLatLng([st.lat, st.lon]); } catch (_) {}
+      // Reuse the existing marker; only rebuild its icon when the discrete level changes.
       try { if(levelChanged)st.marker.setIcon(crMakeIcon(st.raw, st.raw >= 1)); } catch (_) {}
-      try { if(popupChanged)st.marker.setPopupContent(popup(st)); } catch (_) {}
+      // Peak counts/time change on nearly every frame. Avoid repeated DOM work unless
+      // the popup is open; its popupopen handler renders the latest values on demand.
+      try { if(popupMetaChanged && st.marker.isPopupOpen())st.marker.setPopupContent(popup(st)); } catch (_) {}
     }
   }
 
