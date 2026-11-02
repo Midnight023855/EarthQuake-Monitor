@@ -42,8 +42,6 @@ Aplicación web de monitorización sísmica y alertas, en un único archivo HTML
 - Taiwán: módulo TREM y módulo P-Alert con estados y métricas visibles en sus apartados cuando llegan datos. PGA/PGV se muestran solo si se reciben; PGD no se inventa.
 - EarthScope: capas regionales con muestras recientes para Colombia, Costa Rica, México, Guatemala, El Salvador, Nicaragua, Chile, Brasil, Taiwán, Argentina, Puerto Rico, República Dominicana, Haití, Alaska y Estados Unidos continental; se pueden activar/desactivar por región.
 - Capas adicionales con interruptores propios: RSBR (Brasil), GEOFON/GFZ regional y TexNet (Texas). La telemetría reciente y las estimaciones instrumentales se diferencian de intensidad oficial, PGA/PGV calibrados y detección de sismos.
-- Conexión opcional EarthScope SeedLink. La interfaz comunica el estado de conexión y no considera que la opción habilitada pruebe por sí sola que exista una trama válida.
-- Estaciones KMA PEWS se usan para el procesamiento de la fuente/EEW, pero el código actual desactiva el dibujo de sus puntos en el mapa.
 
 ### EEW, ondas y alertas sísmicas
 
