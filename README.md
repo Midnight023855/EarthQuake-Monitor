@@ -8,7 +8,7 @@ Aplicación web de monitorización sísmica y alertas, en un único archivo HTML
 - Los puntos numerados de intensidad SREV/Sesna quedan separados de los círculos de estaciones y conservan su estilo y comportamiento.
 - Se conserva la visualización existente de estaciones Yahoo/Kyoshin y NIED K-NET/KiK-net, junto con la selección de fuente y las métricas que ya tenía el HTML.
 - No se incorpora S-Net ni se agrega un acceso/botón S-Net en esta versión. Las descargas WIN32 de NIED son archivos de ondas para intervalos concretos, no un flujo continuo integrado al monitor; el uso y la redistribución deben respetar las condiciones de NIED.
-- Se conserva la barra de herramientas existente para Inicio, Japón/NIED, alertas meteorológicas JMA, Ajustes y Mar de Japón. No se añadieron controles nuevos de S-Net.
+- Se conserva la barra de herramientas existente para Inicio, Japón/NIED, alertas meteorológicas JMA, Ajustes y Mar de Japón.
 
 ## Funciones principales
 
