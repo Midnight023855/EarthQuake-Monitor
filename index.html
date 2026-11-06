@@ -5470,14 +5470,14 @@ html body #mapActionToolbar #multiClockPanel .clock-time{
 </style>
 <style id="ndma-japan-panel-style">
 /* NDMA funciona como apartado de la aplicación, igual que NWS/JMA, no como ventana flotante. */
-#ndmaJapanPanel{display:none;position:absolute;z-index:8000;inset:0;width:100%;height:100%;min-width:0;max-width:none;max-height:none;box-sizing:border-box;overflow:hidden;background:linear-gradient(170deg,#0b1726,#07111d);border:0;border-radius:0;color:#eaf3fb;box-shadow:none;grid-template-columns:minmax(280px,38%) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto auto;backdrop-filter:none;}
+#ndmaJapanPanel{display:none;position:absolute;z-index:8000;inset:0;width:100%;height:100%;min-width:0;max-width:none;max-height:none;box-sizing:border-box;overflow:hidden;background:transparent;pointer-events:none;border:0;border-radius:0;color:#eaf3fb;box-shadow:none;grid-template-columns:minmax(280px,38%) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto auto;backdrop-filter:none;}
 #ndmaJapanPanel.active{display:grid!important}
-#ndmaJapanPanel .ndma-head{grid-column:1/-1;grid-row:1;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:linear-gradient(90deg,#26364b,#142437);border-bottom:1px solid rgba(255,255,255,.1)}
+#ndmaJapanPanel .ndma-head{grid-column:1/-1;grid-row:1;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:linear-gradient(90deg,rgba(38,54,75,.98),rgba(20,36,55,.96));pointer-events:auto;border-bottom:1px solid rgba(255,255,255,.1)}
 #ndmaJapanPanel .ndma-head>div{display:flex;flex-direction:column;gap:3px}#ndmaJapanPanel .ndma-head b{font-size:14px;letter-spacing:.1em;color:#ffe0a1}#ndmaJapanPanel .ndma-status{font-size:10px;color:#9eacb9}#ndmaJapanPanel .ndma-status.ok{color:#77e0ad}#ndmaJapanPanel .ndma-status.bad{color:#ff8585}#ndmaJapanPanel #ndmaClose{width:34px;height:34px;border:1px solid #607185;border-radius:6px;background:#192b3d;color:#fff;font-size:21px;cursor:pointer}
 #ndmaJapanPanel .ndma-priority-legend{grid-column:1;grid-row:2;display:flex;gap:7px;flex-wrap:wrap;padding:8px 10px;font-size:9px;color:#cbd7e4}#ndmaJapanPanel .ndma-priority-legend span{padding:3px 6px;border-radius:5px;background:#152438;border:1px solid #33485e}#ndmaJapanPanel .ndma-priority-legend .ndma-priority-emergency{border-color:#d14d4d;color:#ffd2cf;background:#39191c}
 #ndmaJapanPanel .ndma-sources{grid-column:1;grid-row:3;padding:0 10px 7px;color:#95a8bb;font-size:9px;border-bottom:1px solid rgba(255,255,255,.08)}
-#ndmaJapanPanel .ndma-list{grid-column:1;grid-row:4;overflow:auto;padding:9px;min-height:0;border-right:1px solid rgba(255,255,255,.1)}#ndmaJapanPanel .ndma-empty{padding:16px;text-align:center;color:#9aabbb;font-size:11px}#ndmaJapanPanel .ndma-item{padding:10px;margin-bottom:7px;border:1px solid rgba(144,172,198,.2);border-radius:8px;background:rgba(255,255,255,.035);cursor:pointer}#ndmaJapanPanel .ndma-item.selected{border-color:#d8a13d}#ndmaJapanPanel .ndma-item.emergency{border-left:4px solid #ef504c;background:rgba(122,31,36,.2)}#ndmaJapanPanel .ndma-line{display:flex;justify-content:space-between;gap:8px;color:#ffc3bc;font-size:9px}#ndmaJapanPanel .ndma-item h3{margin:5px 0;color:#f2f6fa;font-size:12px;line-height:1.45}#ndmaJapanPanel .ndma-item time,#ndmaJapanPanel .ndma-meta{color:#99adbf;font-size:9px}#ndmaJapanPanel .ndma-item p{margin:5px 0;color:#ccd7e1;font-size:10px;line-height:1.4}#ndmaJapanPanel .ndma-item a,#ndmaJapanPanel .ndma-foot a{color:#83d5f1;font-size:10px}
-#ndmaJapanPanel .ndma-map-wrap{grid-column:2;grid-row:2/5;position:relative;min-width:0;min-height:0;padding:8px;display:grid;grid-template-rows:auto minmax(0,1fr) auto;border-left:1px solid rgba(255,255,255,.1)}#ndmaJapanPanel .ndma-map-title{padding:0 2px 6px;color:#f2d28e;font-size:10px;font-weight:700}#ndmaJapanPanel #ndmaMap{width:100%;height:100%;min-height:0;border-radius:7px;background:#07111d;overflow:hidden}#ndmaJapanPanel .ndma-map-note{position:absolute;left:18px;right:18px;top:38px;z-index:500;padding:5px 7px;background:rgba(4,10,16,.82);border:1px solid rgba(232,173,70,.22);border-radius:5px;color:#d6e2ed;font-size:9px;pointer-events:none}#ndmaJapanPanel .ndma-risk-details{position:absolute;z-index:700;left:16px;right:16px;bottom:16px;padding:7px 9px;background:rgba(6,15,24,.94);border:1px solid rgba(128,169,196,.3);border-radius:6px;font-size:9px}#ndmaJapanPanel .ndma-risk-details summary{cursor:pointer;color:#c5d6e5}#ndmaJapanPanel .ndma-risk-details label{display:block;margin:6px 0;color:#dae4ed}#ndmaJapanPanel .ndma-source-note{color:#a4b3c1;font-size:8px;line-height:1.3}
+#ndmaJapanPanel .ndma-list{grid-column:1;grid-row:4;overflow:auto;padding:9px;min-height:0;border-right:1px solid rgba(255,255,255,.1)}#ndmaJapanPanel .ndma-empty{padding:16px;text-align:center;color:#9aabbb;font-size:11px}#ndmaJapanPanel .ndma-item{padding:10px;margin-bottom:7px;border:1px solid rgba(144,172,198,.2);border-radius:8px;background:rgba(255,255,255,.035);cursor:pointer}#ndmaJapanPanel .ndma-item.selected{border-color:#d8a13d}#ndmaJapanPanel .ndma-list{pointer-events:auto;background:rgba(7,17,29,.91);backdrop-filter:blur(5px)}#ndmaJapanPanel .ndma-priority-legend,#ndmaJapanPanel .ndma-sources,#ndmaJapanPanel .ndma-foot,#ndmaJapanPanel .ndma-risk-details{pointer-events:auto}#ndmaJapanPanel .ndma-item.emergency{border-left:4px solid #ef504c;background:rgba(122,31,36,.2)}#ndmaJapanPanel .ndma-line{display:flex;justify-content:space-between;gap:8px;color:#ffc3bc;font-size:9px}#ndmaJapanPanel .ndma-item h3{margin:5px 0;color:#f2f6fa;font-size:12px;line-height:1.45}#ndmaJapanPanel .ndma-item time,#ndmaJapanPanel .ndma-meta{color:#99adbf;font-size:9px}#ndmaJapanPanel .ndma-item p{margin:5px 0;color:#ccd7e1;font-size:10px;line-height:1.4}#ndmaJapanPanel .ndma-item a,#ndmaJapanPanel .ndma-foot a{color:#83d5f1;font-size:10px}
+#ndmaJapanPanel .ndma-map-wrap{grid-column:2;grid-row:2/5;position:relative;min-width:0;min-height:0;padding:8px;display:block;border-left:1px solid rgba(255,255,255,.1);pointer-events:none}#ndmaJapanPanel .ndma-map-title{position:absolute;top:8px;left:12px;padding:5px 8px;color:#f2d28e;font-size:10px;background:rgba(4,10,16,.78);border:1px solid rgba(232,173,70,.22);border-radius:5px;pointer-events:none}#ndmaJapanPanel .ndma-map-note{position:absolute;left:12px;right:12px;bottom:12px;z-index:500;padding:5px 7px;background:rgba(4,10,16,.82);border:1px solid rgba(232,173,70,.22);border-radius:5px;color:#d6e2ed;font-size:9px;pointer-events:none}#ndmaJapanPanel .ndma-risk-details{position:absolute;z-index:700;left:16px;right:16px;bottom:16px;padding:7px 9px;background:rgba(6,15,24,.94);border:1px solid rgba(128,169,196,.3);border-radius:6px;font-size:9px}#ndmaJapanPanel .ndma-risk-details summary{cursor:pointer;color:#c5d6e5}#ndmaJapanPanel .ndma-risk-details label{display:block;margin:6px 0;color:#dae4ed}#ndmaJapanPanel .ndma-source-note{color:#a4b3c1;font-size:8px;line-height:1.3}
 #ndmaJapanPanel .ndma-foot{grid-column:1/-1;grid-row:5;padding:6px 10px;background:rgba(4,10,18,.8);border-top:1px solid rgba(255,255,255,.08);font-size:9px;color:#9aabba}
 #mainLayout.ndma-focus .left-panel,#mainLayout.ndma-focus #connectionPanel,#mainLayout.ndma-focus #intensityLegendPanel,#mainLayout.ndma-focus #jmaEewPanel,#mainLayout.ndma-focus #taiwanDetectorPanel,#mainLayout.ndma-focus #tremMetricsPanel,#mainLayout.ndma-focus #palertMetricsPanel,#mainLayout.ndma-focus #niedMetricsPanel,#mainLayout.ndma-focus #mapActionToolbar>*:not(#btnHome):not(#btnSettings):not(#btnRainRadar):not(#multiClockPanel){display:none!important;visibility:hidden!important}
 #mainLayout.ndma-focus .map-container{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important}#mainLayout.ndma-focus .map-container>#map{display:none!important}
@@ -5669,7 +5669,7 @@ html body #mapActionToolbar #btnRainRadar{display:none!important;visibility:hidd
               <div class="ndma-priority-legend"><span class="ndma-priority-emergency">Emergencia / respuesta</span><span>Noticias y comunicados</span></div>
               <div id="ndmaSourcesStatus" class="ndma-sources">Fuentes NDMA: esperando primer sondeo.</div>
               <div id="ndmaReportList" class="ndma-list"><div class="ndma-empty">Todavía no hay publicaciones cargadas.</div></div>
-              <section class="ndma-map-wrap"><div class="ndma-map-title">Mapa · polígonos de afectación oficiales únicamente</div><div id="ndmaMap"></div><div id="ndmaMapNote" class="ndma-map-note">Sin geometrías oficiales de eventos NDMA disponibles.</div>
+              <section class="ndma-map-wrap"><div class="ndma-map-title">Mapa · polígonos de afectación oficiales únicamente</div><div id="ndmaMapNote" class="ndma-map-note">Sin geometrías oficiales de eventos NDMA disponibles.</div>
                 <details class="ndma-risk-details"><summary>Capas generales de riesgo GSI (no son afectación del evento)</summary><label><input type="checkbox" data-risk-layer="flood"> Inundación fluvial · escenario máximo</label><label><input type="checkbox" data-risk-layer="landslide"> Zona de alerta por deslizamiento</label><div class="ndma-source-note">Referencia GSI/MLIT. No representa afectación actual y no se atribuye a NDMA.</div></details>
               </section>
               <footer class="ndma-foot">NDMA Japón · apartado independiente · <a href="https://www.bousai.go.jp/updates/index.html" target="_blank" rel="noopener noreferrer">fuente oficial</a></footer>
@@ -29859,7 +29859,7 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
                 stations.forEach(st=>{const nied=st.nied||(typeof ynLookupNied==='function'?ynLookupNied(st.lat,st.lon):null);const name=ynSpanishPrefecture(nied&&nied.pref);if(name&&!names.includes(name))names.push(name);});
                 if(names.length)return names.slice(0,6).join(' · ');
                 const lat=stations.reduce((a,x)=>a+Number(x.lat),0)/stations.length,lon=stations.reduce((a,x)=>a+Number(x.lon),0)/stations.length;
-                return 'Área aprox. '+lat.toFixed(2)+'°, '+lon.toFixed(2)+'°';
+                return 'Prefectura en resolución…';
             }catch(_){return 'Área sin ubicar';}
         }
         function ynMotionBoxBounds(stations) {
@@ -29957,7 +29957,7 @@ function ynRenderMotionGroups(groups,primaryAlert=document.getElementById('ynEar
             const stations=[...stationMap.values()],maxIntensity=Math.max(...valid.map(g=>Number(g.maxIntensity)||0));
             ynShowMotionPanel(primaryAlert,stations,maxIntensity,false);
             const placeLabels=[];
-            valid.forEach(g=>{const names=Array.isArray(g.prefectures)?g.prefectures.filter(name=>name&&name!=='Japón'):[];if(names.length)placeLabels.push(...names);else if(Number.isFinite(Number(g.lat))&&Number.isFinite(Number(g.lon)))placeLabels.push('Área aprox. '+Number(g.lat).toFixed(2)+'°, '+Number(g.lon).toFixed(2)+'°');});
+            valid.forEach(g=>{const names=Array.isArray(g.prefectures)?g.prefectures.filter(name=>name&&name!=='Japón'):[];if(names.length)placeLabels.push(...names);else placeLabels.push(g.prefectureResolvePending?'Buscando prefectura…':'Prefectura no disponible');});
             const places=[...new Set(placeLabels)],placeEl=primaryAlert.querySelector('.yn-motion-place');
             if(placeEl)placeEl.textContent=places.length?(places.some(name=>name.startsWith('Área aprox.'))?'Prefecturas/áreas: ':'Prefecturas: ')+places.join(' · '):'Ubicación no disponible';
             ynUpdateMotionBoxes(valid.map(g=>g.stations));
@@ -30826,11 +30826,19 @@ function ynRenderMotionGroups(groups,primaryAlert=document.getElementById('ynEar
             '徳島県':'Tokushima','香川県':'Kagawa','愛媛県':'Ehime','高知県':'Kochi','福岡県':'Fukuoka','佐賀県':'Saga','長崎県':'Nagasaki',
             '熊本県':'Kumamoto','大分県':'Oita','宮崎県':'Miyazaki','鹿児島県':'Kagoshima','沖縄県':'Okinawa'
         };
+        const ynPrefectureIso = Object.fromEntries([
+            '北海道','青森県','岩手県','宮城県','秋田県','山形県','福島県','茨城県','栃木県','群馬県','埼玉県','千葉県','東京都','神奈川県',
+            '新潟県','富山県','石川県','福井県','山梨県','長野県','岐阜県','静岡県','愛知県','三重県','滋賀県','京都府','大阪府','兵庫県',
+            '奈良県','和歌山県','鳥取県','島根県','岡山県','広島県','山口県','徳島県','香川県','愛媛県','高知県','福岡県','佐賀県','長崎県',
+            '熊本県','大分県','宮崎県','鹿児島県','沖縄県'
+        ].map((name,index)=>['JP-'+String(index+1).padStart(2,'0'),ynPrefectureSpanish[name]]));
         const ynPrefectureCache = new Map();
         const ynPrefectureResolveTasks = new Map();
         function ynSpanishPrefecture(raw) {
             const text=String(raw||'').trim();
             if(!text||/^(?:japan|japón|日本)$/i.test(text))return '';
+            const isoMatch=text.toUpperCase().match(/^JP-(\d{2})$/);
+            if(isoMatch&&ynPrefectureIso['JP-'+isoMatch[1]])return ynPrefectureIso['JP-'+isoMatch[1]];
             if(ynPrefectureSpanish[text])return ynPrefectureSpanish[text];
             const clean=text.replace(/^(?:Prefectura|Provincia|Metropolitana)\s+de\s+/i,'').replace(/[都府県]$/,'').trim();
             const direct=Object.entries(ynPrefectureSpanish).find(([key])=>key.replace(/[都府県]$/,'').toLowerCase()===clean.toLowerCase());
@@ -30856,7 +30864,7 @@ function ynRenderMotionGroups(groups,primaryAlert=document.getElementById('ynEar
                 const res=await fetch(url,{headers:{'Accept':'application/json'},cache:'force-cache'});
                 if(!res.ok)throw new Error('reverse geocode HTTP '+res.status);
                 const data=await res.json(),address=data&&data.address||{};
-                const value=ynSpanishPrefecture(address.state||address.province||address.region||address.county||'');
+                const value=ynSpanishPrefecture(address.state||address.province||address.region||address.county||'')||ynSpanishPrefecture(address['ISO3166-2-lvl4']||'');
                 if(value){ynPrefectureCache.set(key,value);return value;}
             }catch(_){}
             ynPrefectureCache.set(key,'');
@@ -31064,15 +31072,16 @@ function ynRenderMotionGroups(groups,primaryAlert=document.getElementById('ynEar
             ynRenderMotionGroups(groups,alert);
             // Topónimos en español por grupo, sin fusionar áreas distantes.
             groups.forEach(group=>{
-                if(!group.prefectures){
-                    group.prefectures=[];
+                if(!group.prefectures&&!group.prefectureResolvePending){
+                    group.prefectureResolvePending=true;
                     const groupSignature=group.signature;
                     ynResolvePrefectures(group.stations||[]).then(names=>{
                         group.prefectures=names;
+                        group.prefectureResolvePending=false;
                         const latest=(ynGroups||[]).find(item=>item.signature===groupSignature);
-                        if(latest)latest.prefectures=names;
+                        if(latest){latest.prefectures=names;latest.prefectureResolvePending=false;}
                         if(ynEarlyEpisode&&ynActiveSignature===signature)ynRenderMotionGroups(ynGroups,alert);
-                    });
+                    }).catch(()=>{group.prefectures=[];group.prefectureResolvePending=false;});
                 }
             });
         }
@@ -33027,6 +33036,7 @@ function ynBuildLeafletMarkers() {
 
   /* ===== Hipocentro estimado NIED (port de FindHypocenter / NiedNet.vue de Kanameishi, AGPL-3.0) ===== */
   let hypoWorker=null,hypoReady=false,hypoReq=0,hypoInFlight=null,hypoPending=null,hypoBusy=false,hypoLayers=null,hypoLastResults=[],hypoWorkerFailed=false,hypoSitePub=null,hypoRefined=0,hypoLastError='';
+  let hypoWaveFrame=0,hypoWaveSamples=new Map(),hypoWaveAnimations=[];
   function exactRound1(v){const n=Number(v);if(!Number.isFinite(n))return NaN;return Number(Math.round(Number(n+'e1'))+'e-1');}
   function getSitePub(){
     if(hypoSitePub)return hypoSitePub;
@@ -33106,7 +33116,65 @@ function ynBuildLeafletMarkers() {
     if(hypoInFlight!==null){hypoPending=mergeHypoUpdates(hypoPending,update);return;}
     postHypoUpdate(update);
   }
-  function clearHypo(){if(hypoLayers)hypoLayers.clearLayers();hypoLastResults=[];try{window.__eqKanameishiLocalEstimateState?.({estimates:[]});}catch(_){}}
+function clearHypo(){
+    if(hypoWaveFrame){cancelAnimationFrame(hypoWaveFrame);hypoWaveFrame=0;}
+    hypoWaveSamples.clear();hypoWaveAnimations=[];
+    if(hypoLayers)hypoLayers.clearLayers();hypoLastResults=[];
+    try{window.__eqKanameishiLocalEstimateState?.({estimates:[]});}catch(_){}
+  }
+  function animateHypoWaves(){
+    hypoWaveFrame=0;
+    if(!hypoWaveAnimations.length)return;
+    const now=performance.now();let moving=false;
+    for(const wave of hypoWaveAnimations){
+      const progress=Math.min(1,Math.max(0,(now-wave.startedAt)/wave.duration));
+      // Interpolate only between radii computed by the NIED hypocenter worker;
+      // this smooths the display without inventing an extra wave speed or radius.
+      const radius=wave.startRadiusM+(wave.targetRadiusM-wave.startRadiusM)*progress;
+      try{wave.circle.setRadius(Math.max(5000,radius));}catch(_){}
+      if(progress<1)moving=true;
+    }
+    if(moving)hypoWaveFrame=requestAnimationFrame(animateHypoWaves);
+  }
+  function scheduleHypoWaveAnimation(){
+    if(!hypoWaveFrame&&hypoWaveAnimations.some(w=>w.duration>0))hypoWaveFrame=requestAnimationFrame(animateHypoWaves);
+  }
+  function makeHypoWaveCircle(ll,phase,radiusKm,key,now){
+    if(!(radiusKm>0))return null;
+    const color=phase==='p'?'#ffffff':'#ff9500';
+    const sampleKey=key+'|'+phase,previous=hypoWaveSamples.get(sampleKey);
+    const targetRadiusM=radiusKm*1000;
+    const startRadiusM=previous?Math.min(targetRadiusM,Math.max(5000,previous.radiusKm*1000)):targetRadiusM;
+    const duration=previous?Math.max(0,Math.min(1200,now-previous.at)):0;
+    const circle=L.circle(ll,{pane:'kanameishiHypoPane',radius:Math.max(5000,startRadiusM),color,weight:2,opacity:1,fill:false,dashArray:'8 8',interactive:false}).addTo(hypoLayers);
+    hypoWaveSamples.set(sampleKey,{radiusKm,at:now});
+    if(hypoWaveSamples.size>60){const oldest=[...hypoWaveSamples.keys()].slice(0,hypoWaveSamples.size-40);oldest.forEach(k=>hypoWaveSamples.delete(k));}
+    if(duration>0&&targetRadiusM>startRadiusM)hypoWaveAnimations.push({circle,startRadiusM,targetRadiusM,startedAt:now,duration});
+    return circle;
+  }
+  function renderHypo(results){
+    if(hypoWaveFrame){cancelAnimationFrame(hypoWaveFrame);hypoWaveFrame=0;}
+    if(!ensureLayers())return;
+    try{if(!map.getPane('kanameishiHypoPane')){const p=map.createPane('kanameishiHypoPane');p.style.zIndex='641';p.style.pointerEvents='none';}}catch(_){}
+    if(!hypoLayers)hypoLayers=L.layerGroup().addTo(map);
+    hypoLayers.clearLayers();hypoLastResults=[];hypoWaveAnimations=[];
+    if(!cfg.hypoEnabled||!cfg.niedEnabled){try{window.__eqKanameishiLocalEstimateState?.({estimates:[]});}catch(_){}return;}
+    const t=niedLastFrame;if(!(t>0)||Date.now()-t>FRESH_MS){try{window.__eqKanameishiLocalEstimateState?.({estimates:[]});}catch(_){}return;}
+    const now=performance.now();
+    for(const r of results.filter(shouldShowHypo)){
+      const h=r.hypocenter,ll=[h.lat,h.lng];hypoLastResults.push(r);
+      const key=`${r.reportNum??''}|${r.originStamp??''}|${Number(h.lat).toFixed(3)}|${Number(h.lng).toFixed(3)}`;
+      if(r.pWaveKm>0)makeHypoWaveCircle(ll,'p',r.pWaveKm,key,now);
+      if(r.sWaveKm>0)makeHypoWaveCircle(ll,'s',r.sWaveKm,key,now);
+      L.marker(ll,{pane:'kanameishiHypoPane',interactive:false,keyboard:false,icon:L.divIcon({className:'',iconSize:[22,22],iconAnchor:[11,11],html:'<div style="width:22px;height:22px;box-sizing:border-box;border-radius:50%;border:2px solid #fff;background:#e53935;box-shadow:0 0 0 2px rgba(0,0,0,.45),0 0 10px rgba(229,57,53,.9);position:relative"><div style="position:absolute;left:50%;top:3px;bottom:3px;width:2px;margin-left:-1px;background:#fff"></div><div style="position:absolute;top:50%;left:3px;right:3px;height:2px;margin-top:-1px;background:#fff"></div></div>'})}).addTo(hypoLayers);
+      const lab=hypoLabelHtml(r);
+      if(lab)L.marker(ll,{pane:'kanameishiHypoPane',interactive:false,keyboard:false,icon:L.divIcon({className:'',iconSize:null,iconAnchor:[0,0],html:lab})}).addTo(hypoLayers);
+    }
+    scheduleHypoWaveAnimation();
+    try{window.__eqKanameishiLocalEstimateState?.({estimates:hypoLastResults.map(r=>({reportNum:r.reportNum,originStamp:r.originStamp,lat:r.hypocenter.lat,lng:r.hypocenter.lng,pWaveKm:r.pWaveKm,sWaveKm:r.sWaveKm}))});}catch(_){}
+    updateMotionPanel();
+  }
+
   function activeEewMatches(result){
     try{
       const d=(typeof jmaEewData!=='undefined')?jmaEewData:null;
@@ -34379,21 +34447,22 @@ function ynBuildLeafletMarkers() {
 (()=>{'use strict';
 const WORKER_URL='https://earthquake-ndma-bridge.terremotis123.workers.dev',K={auto:'earthquake.ndma.autoOpen.v1',processed:'earthquake.ndma.processed.v1',cache:'earthquake.ndma.items.v1',baseline:'earthquake.ndma.baseline.v1'};
 const $=id=>document.getElementById(id),panel=$('ndmaJapanPanel'),openBtn=$('eqsOpenNdmaPanel'),list=$('ndmaReportList');
-let workerUrl=WORKER_URL,autoOpen=true,busy=false,map=null,layer=null,risk={},items=[],active='',sourcesTimer;
+let workerUrl=WORKER_URL,autoOpen=true,busy=false,layer=null,risk={},items=[],active='',sourcesTimer;
 /* NDMA permanece en .map-container; es una vista integrada, no un modal del body. */
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const read=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)??JSON.stringify(d))}catch(_){return d}};
 const get=(k)=>{try{return localStorage.getItem(k)}catch(_){return null}};
 let processed=new Set(read(K.processed,[])),baselineReady=get(K.baseline)==='true';items=read(K.cache,[]);
 function setStatus(t,c=''){const n=$('ndmaPanelStatus');if(n){n.textContent='● '+t;n.className='ndma-status '+c}}
-function makeMap(){if(map||!window.L)return;map=L.map('ndmaMap',{minZoom:3,maxZoom:16,worldCopyJump:false}).setView([36.2,137.4],5);L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',{maxZoom:16,noWrap:true,attribution:'© Esri'}).addTo(map);window.__eqRainRadarAttachMap?.(map);layer=L.featureGroup().addTo(map);risk.flood=L.tileLayer('https://disaportaldata.gsi.go.jp/raster/01_flood_l2_shinsuishin_data/{z}/{x}/{y}.png',{maxZoom:17,opacity:.65,attribution:'Riesgo general: GSI/MLIT'});risk.landslide=L.tileLayer('https://disaportaldata.gsi.go.jp/raster/05_dosekiryukeikaikuiki/{z}/{x}/{y}.png',{maxZoom:17,opacity:.65,attribution:'Riesgo general: GSI/MLIT'});document.querySelectorAll('#ndmaJapanPanel [data-risk-layer]').forEach(c=>c.addEventListener('change',()=>{const l=risk[c.dataset.riskLayer];if(!l)return;c.checked?l.addTo(map):map.removeLayer(l)}))}
-function show(){window.__eqExclusiveAlertApartments?.closeOtherApartments?.('ndmaJapanPanel');document.getElementById('mainLayout')?.classList.add('ndma-focus');panel.classList.add('active');panel.setAttribute('aria-hidden','false');openBtn?.setAttribute('aria-pressed','true');makeMap();requestAnimationFrame(()=>{map?.invalidateSize({pan:false});setTimeout(()=>map?.invalidateSize({pan:false}),180)})}function hide(){panel.classList.remove('active');panel.setAttribute('aria-hidden','true');document.getElementById('mainLayout')?.classList.remove('ndma-focus');openBtn?.setAttribute('aria-pressed','false')}window.__eqNdmaCloseView=hide;window.__eqNdmaMapInvalidate=()=>map?.invalidateSize({pan:false});
+function ndmaMainMap(){try{return typeof map!=='undefined'?map:null}catch(_){return null}}
+function makeMap(){const mainMap=ndmaMainMap();if(!mainMap||!window.L)return;if(!layer)layer=L.featureGroup().addTo(mainMap);risk.flood??=L.tileLayer('https://disaportaldata.gsi.go.jp/raster/01_flood_l2_shinsuishin_data/{z}/{x}/{y}.png',{maxZoom:17,opacity:.65,attribution:'Riesgo general: GSI/MLIT'});risk.landslide??=L.tileLayer('https://disaportaldata.gsi.go.jp/raster/05_dosekiryukeikaikuiki/{z}/{x}/{y}.png',{maxZoom:17,opacity:.65,attribution:'Riesgo general: GSI/MLIT'});document.querySelectorAll('#ndmaJapanPanel [data-risk-layer]').forEach(c=>{if(c.dataset.ndmaBound==='1')return;c.dataset.ndmaBound='1';c.addEventListener('change',()=>{const l=risk[c.dataset.riskLayer];if(!l)return;c.checked?l.addTo(mainMap):mainMap.removeLayer(l)})})}
+function show(){window.__eqExclusiveAlertApartments?.closeOtherApartments?.('ndmaJapanPanel');document.getElementById('mainLayout')?.classList.add('ndma-focus');panel.classList.add('active');panel.setAttribute('aria-hidden','false');openBtn?.setAttribute('aria-pressed','true');makeMap();requestAnimationFrame(()=>{map?.invalidateSize({pan:false});setTimeout(()=>map?.invalidateSize({pan:false}),180)})}function hide(){panel.classList.remove('active');panel.setAttribute('aria-hidden','true');document.getElementById('mainLayout')?.classList.remove('ndma-focus');openBtn?.setAttribute('aria-pressed','false')}window.__eqNdmaCloseView=hide;window.__eqNdmaMapInvalidate=()=>ndmaMainMap()?.invalidateSize({pan:false});
 openBtn?.addEventListener('click',()=>{document.getElementById('eqSettingsModal')?.classList.remove('active');panel.classList.contains('active')?hide():show()});$('ndmaClose')?.addEventListener('click',hide);
 function date(v){if(!v)return 'Fecha no informada';const d=new Date(v);return isNaN(+d)?v:new Intl.DateTimeFormat('es-CO',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Tokyo'}).format(d)+' · Japón'}
 function priority(x){return x.priority==='emergency'?2:1}function revision(x){return `${x.revision||x.sourceUrl}|${x.date||''}|${x.title||''}|${x.description||''}`}
 function render(){const rows=[...items].sort((a,b)=>priority(b)-priority(a)||(Date.parse(b.date||0)||0)-(Date.parse(a.date||0)||0));list.innerHTML=rows.length?rows.map(x=>`<article class="ndma-item ${x.priority==='emergency'?'emergency':''} ${x.id===active?'selected':''}" data-id="${esc(x.id)}"><div class="ndma-line"><b>${x.priority==='emergency'?'🚨 Emergencia / respuesta':'📰 Publicación'}</b><time>${esc(date(x.date))}</time></div><h3>${esc(x.title)}</h3><div class="ndma-meta">${esc(x.issuer||'NDMA')} · ${esc(x.category||'Categoría no indicada')} · ${esc(x.source||'NDMA')}</div><p>${esc(x.description||'Publicación oficial; abre el original para consultar el contenido completo.')}</p><a href="${esc(x.sourceUrl)}" target="_blank" rel="noopener noreferrer">Abrir fuente original ↗</a></article>`).join(''):'<div class="ndma-empty">No hay publicaciones disponibles.</div>';list.querySelectorAll('.ndma-item').forEach(n=>n.addEventListener('click',e=>{if(e.target.closest('a'))return;select(n.dataset.id,true)}));translateVisible()}
 function translateVisible(){const visible=[...list.querySelectorAll('.ndma-item')].slice(0,12);for(const card of visible){const x=items.find(v=>v.id===card.dataset.id);if(!x)continue;const title=card.querySelector('h3');if(title&&/[\u3040-\u30ff\u3400-\u9fff]/.test(title.textContent)&&typeof window.translateToSpanish==='function'){const raw=title.textContent;window.translateToSpanish(raw,'ja').then(v=>{if(v&&v!==raw&&card.isConnected&&title.textContent===raw)title.textContent=v}).catch(()=>{})}const meta=card.querySelector('.ndma-meta');if(meta&&/[\u3040-\u30ff\u3400-\u9fff]/.test(x.issuer||'')&&typeof window.translateToSpanish==='function'){const raw=x.issuer;window.translateToSpanish(raw,'ja').then(v=>{if(v&&v!==raw&&meta.isConnected&&meta.textContent.startsWith(raw))meta.textContent=meta.textContent.replace(raw,v)}).catch(()=>{})}}}
-function select(id,focus){const x=items.find(v=>v.id===id);if(!x)return;active=id;render();layer?.clearLayers();if(x.geometry&&(x.geometry.type==='Feature'||x.geometry.type==='FeatureCollection')){const g=L.geoJSON(x.geometry,{style:{color:'#ffd45e',weight:2,fillColor:'#ffd45e',fillOpacity:.3},onEachFeature:(f,l)=>l.bindPopup(esc(x.title)+' · '+esc(x.geometrySource||x.issuer))}).addTo(layer);$('ndmaMapNote').textContent='Afectación verificada · '+(x.geometrySource||x.issuer);if(focus&&g.getBounds().isValid())map.fitBounds(g.getBounds(),{maxZoom:9,padding:[24,24]})}else{$('ndmaMapNote').textContent='El reporte no incluye geometría oficial. Las capas GSI opcionales son referencias de riesgo, no afectación del evento.'}}
+function select(id,focus){const x=items.find(v=>v.id===id);if(!x)return;active=id;render();layer?.clearLayers();if(x.geometry&&(x.geometry.type==='Feature'||x.geometry.type==='FeatureCollection')){const g=L.geoJSON(x.geometry,{style:{color:'#ffd45e',weight:2,fillColor:'#ffd45e',fillOpacity:.3},onEachFeature:(f,l)=>l.bindPopup(esc(x.title)+' · '+esc(x.geometrySource||x.issuer))}).addTo(layer);$('ndmaMapNote').textContent='Afectación verificada · '+(x.geometrySource||x.issuer);if(focus&&g.getBounds().isValid())ndmaMainMap()?.fitBounds(g.getBounds(),{maxZoom:9,padding:[24,24]})}else{$('ndmaMapNote').textContent='El reporte no incluye geometría oficial. Las capas GSI opcionales son referencias de riesgo, no afectación del evento.'}}
 function updateSources(rows){$('ndmaSourcesStatus').textContent=(rows||[]).map(x=>`${x.name}: ${x.ok?'Disponible':'error'}`).join(' · ')||'El Worker no informó el estado de las fuentes.'}
 function save(){try{localStorage.setItem(K.cache,JSON.stringify(items.slice(0,250)));localStorage.setItem(K.processed,JSON.stringify([...processed].slice(-2000)));localStorage.setItem(K.baseline,String(baselineReady))}catch(_){}}
 function merge(rows){const fresh=[],ordered=[...(rows||[])].sort((a,b)=>(Date.parse(b.date||0)||0)-(Date.parse(a.date||0)||0)),seen=new Set();for(const x of ordered){if(!x?.id||!x?.sourceUrl)continue;const i=items.findIndex(v=>v.disasterId&&v.disasterId===x.disasterId);if(i>=0){const old=items[i],oldDate=Date.parse(old.date||0)||0,newDate=Date.parse(x.date||0)||0,changed=revision(old)!==revision(x);if(changed&&newDate>=oldDate&&!seen.has(x.disasterId)){items[i]={...old,...x};fresh.push(items[i]);seen.add(x.disasterId)}}else{items.unshift(x);fresh.push(x);seen.add(x.disasterId||x.id)}}items=items.slice(0,250);return fresh}
@@ -41771,7 +41840,12 @@ html body #mainLayout:not([class*="-focus"]) #ynEarlyAlert.active.yn-motion-acti
 </script>
 
 
-<
-<style id="eq-hide-rain-radar-access">html body #mapActionToolbar #btnRainRadar{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}</style>
-/body>
+<style id="eq-rain-button-final-hide">
+html body #mapActionToolbar #btnRainRadar,
+html body #mainLayout.jma-weather-focus #mapActionToolbar #btnRainRadar,
+html body #mainLayout.typhoon-focus #mapActionToolbar #btnRainRadar,
+html body #mainLayout.ndma-focus #mapActionToolbar #btnRainRadar,
+html body #eqsHiddenJapanActions #btnRainRadar{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
+</style>
+</body>
 </html>
