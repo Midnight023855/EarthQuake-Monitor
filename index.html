@@ -33239,7 +33239,7 @@ function clearHypo(){
     const layer=niedLayers;layer.clearLayers();
     // El detector principal Yahoo/NIED ya dibuja las celdas del grupo confirmado.
     // Ocultar aquí la cuadrícula paralela de Kanameishi evita cuadros duplicados encima.
-    const mainJapanView=document.getElementById('mainLayout')?.classList.contains('japan-focus')||document.getElementById('mainLayout')?.classList.contains('yahoo-nied-active');
+    const mainJapanView=document.getElementById('mainLayout')?.classList.contains('japan-focus')||document.getElementById('mainLayout')?.classList.contains('yahoo-nied-active')||!!window.__ynEarlyEpisodeActive;
     if(mainJapanView){lastDraw=Date.now();return;}
     if(!stations.length)return;
     const offset=stations.reduce((a,s)=>a+(s.lat||0),0)/stations.length;
