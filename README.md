@@ -11,7 +11,6 @@ Monitor web en un único archivo HTML para consultar sismos, alertas tempranas, 
 - **Render optimizado de mapas JMA:** las geometrías municipales se agrupan por nivel de intensidad para reducir capas y trabajo de dibujo. Las alertas meteorológicas también agrupan las geometrías oficiales por nivel/estilo, conservando sus límites y severidad. No se ha documentado aquí un benchmark de rendimiento ni una prueba visual en todos los dispositivos.
 - **Preliminar y final JMA:** los informes preliminares permanecen en la lista; cuando llega el informe final asociado, el flujo actualiza la misma entrada/ficha en lugar de tratarlo como un evento nuevo sin relación. La asociación usa los identificadores/datos de los informes disponibles; no se completa información ausente con valores inventados.
 - **Apartados automáticos:** el recorrido opcional no se reanuda silenciosamente desde una preferencia antigua al cargar, y se excluyen pasos de recorrido que solo mostraban una capa de mapa sin una ficha útil. Las alertas nuevas de los módulos siguen teniendo sus propios criterios de apertura.
-- **TTS eliminado por completo:** se retiraron la síntesis de voz, anuncios hablados, colas de voz, selección/prueba de voz y sus controles. Se conservan los sonidos de alerta y el ajuste de volumen general.
 - **Fuentes retiradas:** PancakesAPI, UNGRD e IDEAM ya no forman parte de esta edición. También se retiraron las capas/módulos de EarthScope, RSBR, TexNet y las capas de estaciones GEOFON/GFZ; el catálogo sísmico GEOFON/GFZ, cuando está disponible, es independiente.
 - **Movilidad Bogotá:** el HTML contiene un apartado integrado de movilidad con mapa, localidades, categorías de avisos, accesos a Waze e INVÍAS y un módulo de vehículos de TransMilenio servido mediante Worker. Los datos de buses deben mostrarse con su hora real reportada; una respuesta exitosa o datos atrasados no se deben describir como telemetría en vivo.
 - **NDMA Japan:** panel integrado para consultar reportes y avisos de NDMA, separado de los productos JMA. Las geometrías solo representan una afectación cuando el reporte aporta geometría oficial; las capas GSI opcionales son referencias generales de riesgo, no afectaciones atribuidas al aviso.
@@ -51,7 +50,7 @@ Monitor web en un único archivo HTML para consultar sismos, alertas tempranas, 
 - EEW JMA integrado a través de Wolfx con las rutas/respaldo presentes en el HTML; el aviso de EEW se distingue del catálogo de sismos confirmados.
 - Cálculo y dibujo de frentes P/S estimados con TauP cuando el evento y los datos permiten el cálculo. Los frentes teóricos no son formas de onda recibidas por estaciones.
 - Los estados, coordenadas, magnitud, profundidad e intensidad se muestran solo si los proporciona el origen o una estimación identificada como tal.
-- Se conservan sonidos de avisos sísmicos y de otros eventos. **No hay síntesis de voz ni anuncios hablados.**
+- Se conservan sonidos de avisos sísmicos y de otros eventos.
 
 ### Japón: JMA y NDMA
 
@@ -84,7 +83,6 @@ Monitor web en un único archivo HTML para consultar sismos, alertas tempranas, 
 
 - Controles para habilitar sonidos y ajustar el volumen general; sonidos incorporados SREV y sonidos de interfaz.
 - Notificaciones del navegador opcionales, sujetas a permiso del usuario, compatibilidad y disponibilidad.
-- Ticker informativo y textos en pantalla en español en los módulos que los implementan; la traducción visible no depende de TTS.
 - Diseño con reglas adaptativas de pantalla; el rendimiento debe verificarse en el dispositivo concreto y no se garantiza una tasa de cuadros determinada.
 
 ## Fuentes retiradas de esta edición
@@ -104,7 +102,3 @@ No se deben documentar como funciones activas las integraciones retiradas de Pan
 - La cabecera del HTML declara **AGPL-3.0-or-later** y reconoce componentes derivados/adaptados de SesnaQuake. Al redistribuir/publicar una versión modificada, revisa y cumple las obligaciones aplicables de la licencia, incluida la disponibilidad del código fuente correspondiente.
 - Los sonidos SREV se atribuyen en el HTML a kotoho7 bajo **CC BY-SA 2.0**.
 - Leaflet, EOX Sentinel-2, Esri, JMA, GeoNet, agencias sísmicas, productos meteorológicos y demás datos conservan sus licencias, atribuciones y términos originales. Verifica las condiciones de cada proveedor antes de reutilizar o redistribuir sus datos.
-
-## Archivo descrito
-
-Este README documenta `EarthQuake_Japan_motion_wave_close_10s.html`, el HTML principal de esta edición. No describe ni sustituye `EarthQuake_Japon_Completo.html`, que es una variante independiente. Las capacidades efectivas son las que contiene el HTML distribuido; no se debe inferir que una fuente funciona solo porque figure en la documentación o la interfaz.
