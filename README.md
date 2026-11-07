@@ -1,115 +1,110 @@
 # EarthQuake — Monitor sísmico multiagencia
 
-Aplicación web de monitorización sísmica y alertas, en un único archivo HTML. Combina catálogos de terremotos, boletines oficiales, EEW, observaciones de estaciones, mapas meteorológicos y otros paneles ambientales. Los datos dependen de la disponibilidad y las condiciones de sus proveedores; que una fuente aparezca en el código o en la interfaz no garantiza que esté respondiendo en todo momento.
+Monitor web en un único archivo HTML para consultar sismos, alertas tempranas, observaciones de estaciones y avisos ambientales. El mapa y los paneles reúnen productos de distintas agencias, pero cada dato conserva su fuente y tipo: una detección instrumental no equivale a un sismo confirmado, y una estimación no equivale a una medición oficial.
+
+> La disponibilidad depende de las agencias, servicios, conexiones, workers/proxies y permisos del navegador. Un estado de conexión o una respuesta HTTP exitosa no garantiza por sí solo que el dato sea reciente.
 
 ## Novedades de esta edición
 
-- Los marcadores circulares originales de estaciones japonesas usan la paleta instrumental `KyoshinShindoColorMap` en los códigos de feed correspondientes. El cambio se limita al color de esos círculos: no modifica su tamaño, forma, ubicación ni datos.
-- Los puntos numerados de intensidad SREV/Sesna quedan separados de los círculos de estaciones y conservan su estilo y comportamiento.
-- Se conserva la visualización existente de estaciones Yahoo/Kyoshin y NIED K-NET/KiK-net, junto con la selección de fuente y las métricas que ya tenía el HTML.
-- No se incorpora S-Net ni se agrega un acceso/botón S-Net en esta versión. Las descargas WIN32 de NIED son archivos de ondas para intervalos concretos, no un flujo continuo integrado al monitor; el uso y la redistribución deben respetar las condiciones de NIED.
-- Se conserva la barra de herramientas existente para Inicio, Japón/NIED, alertas meteorológicas JMA, Ajustes y Mar de Japón.
+- **Intensidad sísmica JMA por ciudad:** el mapa del sismo seleccionado puede colorear las ciudades afectadas con los niveles oficiales de Shindo publicados por JMA. No colorea prefecturas completas ni inventa áreas cuando el informe no las proporciona.
+- **Estaciones JMA con marcadores Sesna/SREV:** las observaciones oficiales de las estaciones se muestran como puntos numerados con el símbolo de intensidad Sesna/SREV, igual al estilo empleado para estaciones NIED. Los valores, colores y ubicaciones proceden del informe JMA asociado; no son estaciones añadidas de un catálogo.
+- **Render optimizado de mapas JMA:** las geometrías municipales se agrupan por nivel de intensidad para reducir capas y trabajo de dibujo. Las alertas meteorológicas también agrupan las geometrías oficiales por nivel/estilo, conservando sus límites y severidad. No se ha documentado aquí un benchmark de rendimiento ni una prueba visual en todos los dispositivos.
+- **Preliminar y final JMA:** los informes preliminares permanecen en la lista; cuando llega el informe final asociado, el flujo actualiza la misma entrada/ficha en lugar de tratarlo como un evento nuevo sin relación. La asociación usa los identificadores/datos de los informes disponibles; no se completa información ausente con valores inventados.
+- **Apartados automáticos:** el recorrido opcional no se reanuda silenciosamente desde una preferencia antigua al cargar, y se excluyen pasos de recorrido que solo mostraban una capa de mapa sin una ficha útil. Las alertas nuevas de los módulos siguen teniendo sus propios criterios de apertura.
+- **TTS eliminado por completo:** se retiraron la síntesis de voz, anuncios hablados, colas de voz, selección/prueba de voz y sus controles. Se conservan los sonidos de alerta y el ajuste de volumen general.
+- **Fuentes retiradas:** PancakesAPI, UNGRD e IDEAM ya no forman parte de esta edición. También se retiraron las capas/módulos de EarthScope, RSBR, TexNet y las capas de estaciones GEOFON/GFZ; el catálogo sísmico GEOFON/GFZ, cuando está disponible, es independiente.
+- **Movilidad Bogotá:** el HTML contiene un apartado integrado de movilidad con mapa, localidades, categorías de avisos, accesos a Waze e INVÍAS y un módulo de vehículos de TransMilenio servido mediante Worker. Los datos de buses deben mostrarse con su hora real reportada; una respuesta exitosa o datos atrasados no se deben describir como telemetría en vivo.
+- **NDMA Japan:** panel integrado para consultar reportes y avisos de NDMA, separado de los productos JMA. Las geometrías solo representan una afectación cuando el reporte aporta geometría oficial; las capas GSI opcionales son referencias generales de riesgo, no afectaciones atribuidas al aviso.
 
-## Funciones principales
+## Funciones
 
-### Mapa y navegación
+### Mapa, navegación y ajustes
 
-- Mapa Leaflet con controles y herramientas integrados en el HTML.
-- Mapas base: estilo oscuro SesnaQuake/EOX Sentinel-2, oscuro, satélite Esri y terreno.
-- Opciones para color del mar, fallas tectónicas y satélites meteorológicos GOES-East, GOES-West y Himawari.
-- Capas opcionales de viento, rayos (Blitzortung) y radar meteorológico NOAA.
-- La aplicación enfoca sismos nuevos o seleccionados según la vista activa, conserva apartados prioritarios y evita saltos causados por actualizaciones repetidas.
-- Reloj y contador de sismos del día.
+- Mapa interactivo basado en Leaflet, con lista de sismos, selección de evento, paneles y controles integrados.
+- Bases y opciones de mapa presentes en Ajustes: EOX Sentinel-2, satélite Esri y terreno; tema/color del mar; líneas de fallas PB2002; capas meteorológicas disponibles en el HTML.
+- Reloj en hora de Colombia y controles de enfoque/retorno. La navegación evita que las actualizaciones repetidas desplacen el mapa sin necesidad.
+- Filtros de lista por magnitud, región y sismos sentidos; selección de agencias visibles y opciones para definir el zoom de los sismos de la lista.
+- Ajustes de intensidad, modelo TauP, estaciones y métricas; las preferencias se guardan en el navegador.
+- El recorrido de secciones es opcional. El usuario puede activarlo desde el control meteorológico; no se inicia por sí solo tras cargar una preferencia antigua.
 
-### Catálogo sísmico multiagencia
+### Catálogo sísmico y reportes
 
-- Lista de sismos con filtros de magnitud, agencia, región y sismos sentidos; selección y enfoque del evento.
-- Agencias y catálogos reconocidos por los selectores del HTML incluyen USGS/NEIC, JMA, CENC, EMSC, IGN, INETER/CATAC, GEOFON/GFZ, SSN, AFAD, BMKG, GeoNet, INGV, IPGP, SED, PHIVOLCS, CSN, IG-EPN, HKO, VMGD, NOA, KOERI, BCSF, NRCan, USP, MMD, CEA-PR y SGC, además de fuentes de alerta como Early-Est, ShakeAlert y GDACS.
-- Los conectores y feeds se manejan por separado; se usan respaldos de transporte/proxy cuando están programados. Un error o una respuesta vacía no debe interpretarse como que no ocurrió un sismo.
-- La interfaz conserva la agencia de origen y distingue eventos preliminares, revisiones, informes finales y alertas tempranas cuando la fuente ofrece esos estados.
-- Presentación de horas adaptada a Colombia (UTC−5); los nombres y datos originales de las agencias se conservan donde corresponde.
+- Lista multiagencia con información de eventos y, cuando la fuente la ofrece, distinción entre reporte preliminar, revisión, informe final y alerta temprana.
+- Las agencias disponibles en el selector de lista incluyen USGS/NEIC, JMA, CENC, CEA, CEIC, EMSC, IGN, INETER, GEOFON, SSN, AFAD, BMKG, GeoNet, INGV, IPGP, SED, PHIVOLCS, CSN, IG-EPN, Early-Est, HKO, VMGD, NOA, KOERI, SGC, KMA, BCSF, NRCan, USP, MMD y CEA-PR. La presencia en el selector no garantiza que cada fuente responda en todo momento.
+- Se preservan agencia, nombres y datos de origen cuando corresponde; las horas de interfaz se presentan en la zona horaria de Colombia.
+- Las respuestas de error, feeds vacíos y respaldos de red no deben interpretarse como confirmación de que no hubo un sismo.
 
-### Intensidad, observaciones y estaciones
+### Intensidad, estaciones y movimiento instrumental
 
-- Dibujo de la intensidad oficial de JMA del evento seleccionado cuando está disponible; se muestran las estaciones e intensidades oficiales asociadas al boletín, sin agregar un catálogo JMA ficticio.
-- Intensidad observada/estimada de fuentes compatibles, con leyendas y escalas diferenciadas. Puede seleccionarse la escala nativa de la agencia, Shindo, MMI, CSIS, CWA o GeoNet MMI según la capa y sus datos.
-- GeoNet permite activar observaciones Strong Motion recientes y seleccionar intensidad MMI, PGA o PGV cuando la fuente las entrega.
-- Japón: estaciones Yahoo/Kyoshin CDN y NIED K-NET/KiK-net; el usuario puede elegir Yahoo, NIED, K-NET, KiK-net o Yahoo + NIED. Hi-net aparece como catálogo sin telemetría; F-net y V-net se identifican explícitamente como sin flujo público verificado en esta capa.
-- Los círculos de las estaciones japonesas usan la paleta instrumental Kyoshin en esta edición. Los marcadores numerados de intensidad SREV/Sesna no se alteran por ese ajuste.
-- La leyenda de Japón distingue la escala 0–7 y las subdivisiones 5−, 5+, 6− y 6+ cuando corresponden. Los valores derivados de colores se etiquetan como aproximados y no como PGA/PGV crudos u oficiales.
-- Detector local Yahoo/NIED: se basa en tramas frescas de estaciones; requiere confirmación espacial/temporal y separa movimiento instrumental de un sismo oficial. La pérdida del feed no equivale a reposo y el centroide no se presenta como epicentro confirmado.
-- Vista del Mar de Japón y medidas máximas NIED disponibles en el monitor.
-- Taiwán: módulo TREM y módulo P-Alert con estados y métricas visibles en sus apartados cuando llegan datos. PGA/PGV se muestran solo si se reciben; PGD no se inventa.
-- EarthScope: capas regionales con muestras recientes para Colombia, Costa Rica, México, Guatemala, El Salvador, Nicaragua, Chile, Brasil, Taiwán, Argentina, Puerto Rico, República Dominicana, Haití, Alaska y Estados Unidos continental; se pueden activar/desactivar por región.
-- Capas adicionales con interruptores propios: RSBR (Brasil), GEOFON/GFZ regional y TexNet (Texas). La telemetría reciente y las estimaciones instrumentales se diferencian de intensidad oficial, PGA/PGV calibrados y detección de sismos.
+- **JMA:** al seleccionar un evento con informe oficial compatible, se dibujan las ciudades con intensidad publicada y los puntos de estaciones de observación del mismo informe. Los puntos usan marcadores numerados Sesna/SREV. Si el informe no incluye un dato, no se fabrica.
+- **Alertas meteorológicas JMA:** se muestran polígonos municipales/áreas afectadas y sus niveles oficiales cuando el boletín los aporta. La geometría se agrupa por estilo para reducir la cantidad de capas dibujadas.
+- **Japón — Yahoo/Kyoshin y NIED K-NET/KiK-net:** selección disponible para Yahoo, NIED, K-NET, KiK-net o ambas fuentes; se pueden consultar los cuadros de intensidad/PGA/PGV estimados de NIED. Hi-net y F-net se identifican como catálogo sin telemetría integrada en esta vista; V-net no se presenta como flujo público verificado.
+- Las lecturas aproximadas de PGA/PGV derivadas de color se identifican como aproximadas; no son medidas crudas. La pérdida de datos o un feed detenido no equivale a reposo confirmado.
+- La detección local Yahoo/NIED se distingue de una alerta oficial: los grupos/centros instrumentales no se presentan como epicentros oficiales ni generan magnitudes confirmadas.
+- **Taiwán:** módulos TREM y P-Alert para observaciones y detección local. Intensidad instrumental, PGA y PGV se muestran solo cuando la fuente entrega datos; PGD no se inventa. Movimiento detectado por estaciones no es por sí mismo EEW oficial ni intensidad Shindo oficial.
+- **GeoNet:** vista de observaciones Strong Motion recientes y puntos asociados a un sismo seleccionado, con intensidad MMI, PGA o PGV según el producto disponible. Los productos horarios y los puntos de un evento se mantienen separados.
+- Las capas agrupadas de ciudades JMA y alertas meteorológicas reducen el número de geometrías renderizadas; no alteran la severidad o ubicación oficial de los polígonos.
 
-### EEW, ondas y alertas sísmicas
+### Alertas sísmicas y ondas
 
-- Manejo de alertas tempranas de las fuentes integradas, con tarjeta/panel de alerta, revisiones y estados diferenciados de alerta, información y cancelación según el origen.
-- EEW JMA a través de los canales disponibles en el HTML, incluido Wolfx, con presentación y reglas de vigencia propias; el catálogo JMA no se confunde con un EEW.
-- Dibujo de frentes P/S teóricos con TauP (modelo IASP91) para eventos que permiten ese cálculo. Hay modos preciso, rápido y respaldo; el respaldo geométrico se identifica como estimación, no como TauP.
-- Visualización de ondas para alertas elegibles; los frentes calculados son estimaciones y no formas de onda recibidas en estaciones.
-- Alertas específicas de JMA, CWA, KMA PEWS y otras fuentes se conservan diferenciadas; una magnitud, lugar, intensidad, profundidad u hora ausente no se debe completar con un valor inventado.
-- Informe final de intensidad JMA y aviso EEW son etapas distintas; el cierre de la alerta no elimina el evento confirmado de la lista.
-- El monitor evita repetir alertas o sonidos por cada sondeo de la misma revisión.
+- Paneles para EEW y avisos de las fuentes implementadas, con revisiones y estados diferenciados según el producto de origen.
+- EEW JMA integrado a través de Wolfx con las rutas/respaldo presentes en el HTML; el aviso de EEW se distingue del catálogo de sismos confirmados.
+- Cálculo y dibujo de frentes P/S estimados con TauP cuando el evento y los datos permiten el cálculo. Los frentes teóricos no son formas de onda recibidas por estaciones.
+- Los estados, coordenadas, magnitud, profundidad e intensidad se muestran solo si los proporciona el origen o una estimación identificada como tal.
+- Se conservan sonidos de avisos sísmicos y de otros eventos. **No hay síntesis de voz ni anuncios hablados.**
 
-### Avisos oficiales de Japón
+### Japón: JMA y NDMA
 
-- Avisos meteorológicos JMA en apartado propio, con categorías/colores según la información oficial y polígonos de zonas de pronóstico cuando están disponibles.
-- Boletines volcánicos JMA en sección propia y procesamiento de productos JMA relacionados.
-- Alertas, avisos y pronósticos de tsunami JMA, junto con boletines PTWC/NTWC/NOAA disponibles en el módulo. Se distingue entre alerta/aviso y cambios menores o pronósticos.
-- Sismos JMA e información de intensidad, con traducción/presentación al español en los módulos de aviso y horario local de Colombia.
-- El apartado de estaciones Japón/NIED no agrega S-Net; el botón visible es el acceso existente de Japón/NIED y no un control de S-Net.
+- Sismos JMA, informes de intensidad, alertas tempranas JMA y boletines volcánicos JMA en flujos/paneles separados.
+- Actualización de la entrada preliminar cuando se recibe el informe final correspondiente, en vez de borrar el preliminar antes de que llegue el informe posterior.
+- Avisos meteorológicos JMA con niveles/colores publicados y geometrías de las zonas afectadas cuando están disponibles.
+- Mapas de intensidad sísmica por ciudades y observaciones de estaciones, con puntos numerados Sesna/SREV de intensidad oficial.
+- Apartado NDMA Japan para avisos y publicaciones de gestión de desastres. NDMA no se confunde con JMA; las capas opcionales de riesgo GSI no son polígonos de afectación del aviso.
+- Avisos de tsunami JMA y boletines PTWC/NTWC/NOAA disponibles en el módulo correspondiente.
 
-### Tiempo severo, ciclones y desastres
+### Alertas meteorológicas, tsunami y ambientales
 
-- Tifones/ciclones tropicales: panel cartográfico con fuentes incluidas en el HTML (JMA, NMC/CMA y otros proveedores programados), trayectorias e información disponible.
-- Huracanes de Estados Unidos: módulo NOAA/NHC con información oficial y geometría cuando el feed la publica.
-- Alertas meteorológicas oficiales de Estados Unidos/NWS, con radar NOAA y referencias a condados cuando están disponibles.
-- Alertas globales GDACS para peligros cubiertos por su servicio, en apartado independiente.
-- Alertas ambientales mundiales de clima espacial NOAA/SWPC y protección civil/GDACS en su panel específico.
-- Volcanes: seguimiento/panel mundial con fuentes volcánicas incorporadas y marcadores informativos. La interfaz diferencia alertas/observaciones de un catálogo de volcanes.
-- SIAT-CT México: vista del aviso y mapa oficial de ciclones tropicales, con opción de abrir la fuente oficial y actualizar.
+- Seguimiento cartográfico de tifones/ciclones tropicales, incluyendo productos JMA/NMC y proveedores contemplados por el código.
+- Panel NOAA/NHC para sistemas tropicales y módulo NWS para alertas meteorológicas de Estados Unidos; incluye los detalles/zonas publicados por el feed y el radar NOAA disponible en la vista.
+- Avisos de tsunami JMA y productos PTWC/NTWC/NOAA, con áreas y geometrías solo cuando el producto las entrega.
+- Alertas globales GDACS en su apartado cartográfico y panel separado de clima espacial NOAA/SWPC.
+- Vista de avisos volcánicos mundiales y apartados volcánicos JMA y Colombia/Caribe cuando hay datos de las fuentes integradas.
+- SIAT-CT México: módulo para nuevos avisos de ciclón tropical con enlace al boletín oficial y geometrías del servicio cuando están disponibles.
+- Un sondeo repetido de una alerta existente no se trata automáticamente como novedad nueva.
 
-### Colombia: movilidad, clima, noticias y fútbol
+### Colombia: movilidad y otras herramientas
 
-- Movilidad Bogotá: apartado con información de la Secretaría Distrital de Movilidad y componentes Waze e INVÍAS, además de avisos por categorías como accidente, manifestación, cierre, TransMilenio, clima y tráfico. Waze se identifica como información de usuarios, no como boletín oficial de la SDM.
-- Consulta/visualización de avisos y fuentes de movilidad existentes en el HTML; la primera carga de una fuente no se presenta como una novedad nueva.
-- Clima: condiciones meteorológicas y búsqueda de ciudades con Open-Meteo, con consulta de datos actuales, viento y variables disponibles.
-- Noticias/avisos colombianos: agregación de titulares de fuentes incorporadas y panel de alertas ambientales; no se fabrican titulares cuando un feed falla.
-- Próximo partido de la Selección Colombia, incluidos encuentros de futsal cuando están disponibles en la fuente FCF. El marcador y eventos solo se muestran cuando la fuente los entrega; la integración no convierte fixture de calendario en goles en vivo.
-- Alertas configurables de goles, descanso y final, y efecto visual de lluvia de balones por gol cuando está activado.
+- **Movilidad Bogotá:** apartado con mapa y localidades, avisos por categorías como accidentes, manifestaciones, cierres, TransMilenio, clima y tráfico, además de accesos a Waze e INVÍAS.
+- **TransMilenio:** consulta a través del Worker configurado; las fichas deben conservar la hora de reporte real. Si el proveedor devuelve un corte antiguo, no se debe llamar “en vivo”.
+- Vista Colombia/Caribe para reportes volcánicos y de tsunami, con accesos a las fuentes incorporadas.
+- Búsqueda meteorológica de ciudades y consulta de condiciones actuales disponibles mediante Open-Meteo.
+- Seguimiento de partidos de Colombia y avisos/efectos configurables cuando los datos del servicio están disponibles. El monitor no debe inferir goles a partir de un calendario sin marcador real.
 
-### Audio, voz y notificaciones
+### Audio, notificaciones y presentación
 
-- TTS configurable, selección/prueba de voz y volumen general ajustable.
-- Sonidos de avisos sísmicos, intensidad y tsunami según los módulos; opciones de sonido y notificaciones en Ajustes.
-- Ticker/telop informativo para avisos elegibles, con reglas de antigüedad y prioridad por tipo de producto.
-- Notificaciones push opcionales, sujeto a navegador compatible, permiso y disponibilidad del servicio; no son un sistema EEW ni garantizan entrega instantánea.
+- Controles para habilitar sonidos y ajustar el volumen general; sonidos incorporados SREV y sonidos de interfaz.
+- Notificaciones del navegador opcionales, sujetas a permiso del usuario, compatibilidad y disponibilidad.
+- Ticker informativo y textos en pantalla en español en los módulos que los implementan; la traducción visible no depende de TTS.
+- Diseño con reglas adaptativas de pantalla; el rendimiento debe verificarse en el dispositivo concreto y no se garantiza una tasa de cuadros determinada.
 
-### Ajustes y visualización
+## Fuentes retiradas de esta edición
 
-- Ajuste de magnitud mínima del catálogo y del ticker, región, agencia, escala de intensidad, mapa, modelo TauP, voz, sonidos, volumen, estaciones y capas regionales.
-- Interruptores para fallas, notificaciones del navegador, GeoNet, estaciones de Japón, TREM/P-Alert, métricas NIED y capas EarthScope/RSBR/GFZ/TexNet.
-- Diseño adaptable a escritorio y móvil. La interfaz integra lista, mapa, paneles de fuentes y controles de herramientas.
+No se deben documentar como funciones activas las integraciones retiradas de PancakesAPI, UNGRD, IDEAM, EarthScope, RSBR y TexNet, ni las capas de estaciones GEOFON/GFZ. El catálogo sísmico GEOFON/GFZ se conserva por separado de esas capas. Esta edición tampoco incluye TTS.
 
-## Límites importantes
+## Límites y lectura responsable
 
-- La información es de monitorización, no sustituye a los organismos oficiales ni a los sistemas públicos de protección civil.
-- “Estimado”, “instrumental”, “aproximado” y “oficial” no son intercambiables. PGA/PGV/PGD solo se presentan como mediciones cuando una fuente los entrega; conversiones visuales deben permanecer marcadas como aproximadas.
-- Un punto de catálogo de estación no demuestra telemetría reciente. La conexión se debe respaldar con tramas frescas y válidas.
-- La señal de un detector local no crea por sí sola un sismo confirmado, magnitud, profundidad o epicentro oficial.
-- Las dependencias de red, CORS, servicios de terceros, workers/proxies y navegadores pueden afectar feeds, mapas, capas y notificaciones.
-- Esta edición no integra estaciones ni ondas S-Net. Las formas de onda WIN32 de NIED descargadas por el usuario son datos de intervalos específicos y no se redistribuyen por medio de este HTML.
+- Este monitor no sustituye las instrucciones de organismos oficiales ni servicios públicos de protección civil.
+- “Oficial”, “instrumental”, “estimado” y “aproximado” tienen significados diferentes. Un cálculo o detector local no crea un sismo confirmado, una magnitud oficial o un epicentro oficial.
+- La existencia de un punto en un catálogo no prueba que esa estación esté transmitiendo ahora. Solo las tramas recientes y válidas respaldan una afirmación de telemetría actual.
+- Las capas de riesgo generales no deben atribuirse a un evento concreto si el informe no incluye geometría de afectación.
+- Las fuentes externas, workers/proxies, CORS, servicios de mapas y permisos pueden cambiar o dejar de responder. Los datos atrasados deben mostrarse con su hora real, no como datos en vivo.
 
 ## Créditos y licencias
 
-- El HTML incorpora Leaflet y mantiene avisos de licencia/atribución de sus componentes y fuentes.
-- La cabecera del archivo declara **AGPL-3.0-or-later** para esta copia y señala componentes derivados/adaptados de SesnaQuake (Domiko7), incluyendo elementos visuales, panel de eventos, marcadores de estaciones, símbolos de intensidad y presentación EEW. Si se publica o redistribuye una versión modificada, hay que cumplir la licencia AGPL-3.0 y ofrecer el código fuente correspondiente.
-- Los sonidos SREV atribuidos en el HTML son de kotoho7 y se indican bajo CC BY-SA 2.0.
-- Los mosaicos, observaciones, intensidades, feeds y otros activos conservan sus términos y atribuciones originales; revisar las condiciones de cada proveedor antes de reutilizar o redistribuir.
-- Los nombres de agencias y marcas se usan para identificar sus datos y servicios, no implican respaldo de sus titulares.
+- La cabecera del HTML declara **AGPL-3.0-or-later** y reconoce componentes derivados/adaptados de SesnaQuake. Al redistribuir/publicar una versión modificada, revisa y cumple las obligaciones aplicables de la licencia, incluida la disponibilidad del código fuente correspondiente.
+- Los sonidos SREV se atribuyen en el HTML a kotoho7 bajo **CC BY-SA 2.0**.
+- Leaflet, EOX Sentinel-2, Esri, JMA, GeoNet, agencias sísmicas, productos meteorológicos y demás datos conservan sus licencias, atribuciones y términos originales. Verifica las condiciones de cada proveedor antes de reutilizar o redistribuir sus datos.
 
-## Archivo
+## Archivo descrito
 
-Esta documentación describe el HTML independiente de EarthQuake entregado junto con este README. Las fuentes externas pueden cambiar; el comportamiento efectivo corresponde siempre al código y los feeds disponibles en la versión concreta del archivo.
+Este README documenta `EarthQuake_Japan_motion_wave_close_10s.html`, el HTML principal de esta edición. No describe ni sustituye `EarthQuake_Japon_Completo.html`, que es una variante independiente. Las capacidades efectivas son las que contiene el HTML distribuido; no se debe inferir que una fuente funciona solo porque figure en la documentación o la interfaz.
