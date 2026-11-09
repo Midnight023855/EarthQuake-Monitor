@@ -1,104 +1,75 @@
-# EarthQuake — Monitor sísmico multiagencia
+# EarthQuake — variante móvil ligera
 
-Monitor web en un único archivo HTML para consultar sismos, alertas tempranas, observaciones de estaciones y avisos ambientales. El mapa y los paneles reúnen productos de distintas agencias, pero cada dato conserva su fuente y tipo: una detección instrumental no equivale a un sismo confirmado, y una estimación no equivale a una medición oficial.
+README de `EarthQuake_Japan_movil_ligero_Intensidad_fija_movimiento_TTS_Mangxu.html`. Esta variante está pensada para reducir trabajo no crítico en teléfonos compatibles, manteniendo activas las fuentes de EEW. Documenta lo presente en este archivo, no todas las funciones ni diferencias del HTML principal.
 
-> La disponibilidad depende de las agencias, servicios, conexiones, workers/proxies y permisos del navegador. Un estado de conexión o una respuesta HTTP exitosa no garantiza por sí solo que el dato sea reciente.
+> No se verificó la interfaz en un teléfono ni se probó audio real. La conectividad y las voces disponibles dependen del dispositivo, el navegador y los servicios externos.
 
-## Novedades de esta edición
+## Novedades de esta versión
 
-- **Intensidad sísmica JMA por ciudad:** el mapa del sismo seleccionado puede colorear las ciudades afectadas con los niveles oficiales de Shindo publicados por JMA. No colorea prefecturas completas ni inventa áreas cuando el informe no las proporciona.
-- **Estaciones JMA con marcadores Sesna/SREV:** las observaciones oficiales de las estaciones se muestran como puntos numerados con el símbolo de intensidad Sesna/SREV, igual al estilo empleado para estaciones NIED. Los valores, colores y ubicaciones proceden del informe JMA asociado; no son estaciones añadidas de un catálogo.
-- **Render optimizado de mapas JMA:** las geometrías municipales se agrupan por nivel de intensidad para reducir capas y trabajo de dibujo. Las alertas meteorológicas también agrupan las geometrías oficiales por nivel/estilo, conservando sus límites y severidad. No se ha documentado aquí un benchmark de rendimiento ni una prueba visual en todos los dispositivos.
-- **Preliminar y final JMA:** los informes preliminares permanecen en la lista; cuando llega el informe final asociado, el flujo actualiza la misma entrada/ficha en lugar de tratarlo como un evento nuevo sin relación. La asociación usa los identificadores/datos de los informes disponibles; no se completa información ausente con valores inventados.
-- **Apartados automáticos:** el recorrido opcional no se reanuda silenciosamente desde una preferencia antigua al cargar, y se excluyen pasos de recorrido que solo mostraban una capa de mapa sin una ficha útil. Las alertas nuevas de los módulos siguen teniendo sus propios criterios de apertura.
-- **Fuentes retiradas:** PancakesAPI, UNGRD e IDEAM ya no forman parte de esta edición. También se retiraron las capas/módulos de EarthScope, RSBR, TexNet y las capas de estaciones GEOFON/GFZ; el catálogo sísmico GEOFON/GFZ, cuando está disponible, es independiente.
-- **Movilidad Bogotá:** el HTML contiene un apartado integrado de movilidad con mapa, localidades, categorías de avisos, accesos a Waze e INVÍAS y un módulo de vehículos de TransMilenio servido mediante Worker. Los datos de buses deben mostrarse con su hora real reportada; una respuesta exitosa o datos atrasados no se deben describir como telemetría en vivo.
-- **NDMA Japan:** panel integrado para consultar reportes y avisos de NDMA, separado de los productos JMA. Las geometrías solo representan una afectación cuando el reporte aporta geometría oficial; las capas GSI opcionales son referencias generales de riesgo, no afectaciones atribuidas al aviso.
+- **TTS de informes sísmicos por idioma de agencia**, activable o silenciable en **Ajustes → Sonido y TTS**. La opción es independiente del audio general y guarda su preferencia.
+- La locución se limita a informes sísmicos nuevos elegibles; no se usa para EEW, tsunami, volcanes ni meteorología. El TTS requiere soporte de `SpeechSynthesis` y voces compatibles instaladas en el dispositivo.
+- Formatos de voz implementados para **BMKG** (indonesio), **JMA** (japonés), **CWA** (chino tradicional de Taiwán), **GeoNet** (inglés de Nueva Zelanda, para informes de calidad final), **CENC** y **CEIC** (chino simplificado). Son locuciones construidas por el monitor a partir de los campos disponibles; no son audio oficial de las agencias ni una garantía de reproducción exacta de sus boletines.
+- **CEIC:** la ficha grande identifica el reporte como “CEIC Report” junto a la hora.
+- **Catálogos Mangxu:** se incorporaron CEA-PR, AusPass, IPMA, RSN Costa Rica, INFP y CEIC. Se muestran como datos agregados de Mangxu, no como conexión directa verificada con cada agencia. El snapshot de CEA-PR es catálogo, no una trama EEW activa.
+- **Conexiones más estrictas:** la etiqueta “Conectada” ya no se mantiene por una caché o por un estado antiguo. Para las fuentes HTTP genéricas y Mangxu requiere una respuesta válida reciente; los WebSockets se juzgan por actividad reciente. En Mangxu, una respuesta válida sin eventos recientes también puede significar que el servicio respondió, no que haya sismos nuevos.
+- **SGC:** actualmente no conecta de forma verificable. El feed consultado devolvió HTTP 403 `AccessDenied` en las comprobaciones realizadas, y el respaldo FDSN no respondió. No se deben tratar datos guardados en caché como conexión activa ni confundir una fuente distinta con el SGC.
 
-## Funciones
+## Funciones presentes
 
-### Mapa, navegación y ajustes
+### Monitor sísmico y mapa
 
-- Mapa interactivo basado en Leaflet, con lista de sismos, selección de evento, paneles y controles integrados.
-- Bases y opciones de mapa presentes en Ajustes: EOX Sentinel-2, satélite Esri y terreno; tema/color del mar; líneas de fallas PB2002; capas meteorológicas disponibles en el HTML.
-- Reloj en hora de Colombia y controles de enfoque/retorno. La navegación evita que las actualizaciones repetidas desplacen el mapa sin necesidad.
-- Filtros de lista por magnitud, región y sismos sentidos; selección de agencias visibles y opciones para definir el zoom de los sismos de la lista.
-- Ajustes de intensidad, modelo TauP, estaciones y métricas; las preferencias se guardan en el navegador.
-- El recorrido de secciones es opcional. El usuario puede activarlo desde el control meteorológico; no se inicia por sí solo tras cargar una preferencia antigua.
+- Mapa interactivo y lista de sismos multiagencia, con selección de eventos y fichas de detalle.
+- Conserva la identificación de agencia/fuente y separa los reportes sísmicos, alertas tempranas y detecciones instrumentales. La selección de una fuente en la lista no garantiza que esté disponible en ese momento.
+- Visualización de las fuentes sísmicas y paneles integrados en este HTML; los eventos de Mangxu se identifican como agregados.
+- Presentación de hora en la interfaz según las reglas implementadas por el monitor; las locuciones TTS usan las zonas horarias propias configuradas para las agencias indicadas.
 
-### Catálogo sísmico y reportes
+### Intensidad, detección y alertas
 
-- Lista multiagencia con información de eventos y, cuando la fuente la ofrece, distinción entre reporte preliminar, revisión, informe final y alerta temprana.
-- Las agencias disponibles en el selector de lista incluyen USGS/NEIC, JMA, CENC, CEA, CEIC, EMSC, IGN, INETER, GEOFON, SSN, AFAD, BMKG, GeoNet, INGV, IPGP, SED, PHIVOLCS, CSN, IG-EPN, Early-Est, HKO, VMGD, NOA, KOERI, SGC, KMA, BCSF, NRCan, USP, MMD y CEA-PR. La presencia en el selector no garantiza que cada fuente responda en todo momento.
-- Se preservan agencia, nombres y datos de origen cuando corresponde; las horas de interfaz se presentan en la zona horaria de Colombia.
-- Las respuestas de error, feeds vacíos y respaldos de red no deben interpretarse como confirmación de que no hubo un sismo.
+- Intensidad JMA, estaciones/observaciones japonesas y detección de movimiento conforme a los módulos incluidos en el archivo.
+- Integraciones TREM y P-Alert de Taiwán y sus herramientas de detección/observación. Una detección de movimiento instrumental no equivale a un epicentro oficial, una intensidad oficial ni una alerta temprana gubernamental.
+- EEW y frentes de ondas P/S calculados donde hay datos suficientes. Las ondas calculadas son estimaciones, no señales sísmicas medidas directamente.
+- Alertas de tsunami, tifones y otros módulos ambientales incorporados en la variante. La presencia de un panel no garantiza datos actuales de su proveedor.
+- Perfiles de rendimiento móvil reducen algunas tareas no críticas en dispositivos que cumplen los criterios declarados en los metadatos del HTML. No se afirma una tasa de cuadros ni estabilidad garantizada en un modelo concreto de teléfono.
 
-### Intensidad, estaciones y movimiento instrumental
+### Audio y ajustes
 
-- **JMA:** al seleccionar un evento con informe oficial compatible, se dibujan las ciudades con intensidad publicada y los puntos de estaciones de observación del mismo informe. Los puntos usan marcadores numerados Sesna/SREV. Si el informe no incluye un dato, no se fabrica.
-- **Alertas meteorológicas JMA:** se muestran polígonos municipales/áreas afectadas y sus niveles oficiales cuando el boletín los aporta. La geometría se agrupa por estilo para reducir la cantidad de capas dibujadas.
-- **Japón — Yahoo/Kyoshin y NIED K-NET/KiK-net:** selección disponible para Yahoo, NIED, K-NET, KiK-net o ambas fuentes; se pueden consultar los cuadros de intensidad/PGA/PGV estimados de NIED. Hi-net y F-net se identifican como catálogo sin telemetría integrada en esta vista; V-net no se presenta como flujo público verificado.
-- Las lecturas aproximadas de PGA/PGV derivadas de color se identifican como aproximadas; no son medidas crudas. La pérdida de datos o un feed detenido no equivale a reposo confirmado.
-- La detección local Yahoo/NIED se distingue de una alerta oficial: los grupos/centros instrumentales no se presentan como epicentros oficiales ni generan magnitudes confirmadas.
-- **Taiwán:** módulos TREM y P-Alert para observaciones y detección local. Intensidad instrumental, PGA y PGV se muestran solo cuando la fuente entrega datos; PGD no se inventa. Movimiento detectado por estaciones no es por sí mismo EEW oficial ni intensidad Shindo oficial.
-- **GeoNet:** vista de observaciones Strong Motion recientes y puntos asociados a un sismo seleccionado, con intensidad MMI, PGA o PGV según el producto disponible. Los productos horarios y los puntos de un evento se mantienen separados.
-- Las capas agrupadas de ciudades JMA y alertas meteorológicas reducen el número de geometrías renderizadas; no alteran la severidad o ubicación oficial de los polígonos.
+- Controles de sonidos y volumen general.
+- Interruptor específico para TTS de informes sísmicos en Ajustes. Silenciar el TTS no implica apagar sonidos de alerta.
+- No se habla información estimada como si fuera una medición oficial. Las reglas de elegibilidad pueden omitir reportes a los que falten campos necesarios o cuya calidad no cumpla el criterio correspondiente.
 
-### Alertas sísmicas y ondas
+## Fuentes agregadas de Mangxu
 
-- Paneles para EEW y avisos de las fuentes implementadas, con revisiones y estados diferenciados según el producto de origen.
-- EEW JMA integrado a través de Wolfx con las rutas/respaldo presentes en el HTML; el aviso de EEW se distingue del catálogo de sismos confirmados.
-- Cálculo y dibujo de frentes P/S estimados con TauP cuando el evento y los datos permiten el cálculo. Los frentes teóricos no son formas de onda recibidas por estaciones.
-- Los estados, coordenadas, magnitud, profundidad e intensidad se muestran solo si los proporciona el origen o una estimación identificada como tal.
-- Se conservan sonidos de avisos sísmicos y de otros eventos.
+Se consultan los catálogos de:
 
-### Japón: JMA y NDMA
+- CEA-PR
+- AusPass
+- IPMA
+- RSN Costa Rica
+- INFP
+- CEIC
 
-- Sismos JMA, informes de intensidad, alertas tempranas JMA y boletines volcánicos JMA en flujos/paneles separados.
-- Actualización de la entrada preliminar cuando se recibe el informe final correspondiente, en vez de borrar el preliminar antes de que llegue el informe posterior.
-- Avisos meteorológicos JMA con niveles/colores publicados y geometrías de las zonas afectadas cuando están disponibles.
-- Mapas de intensidad sísmica por ciudades y observaciones de estaciones, con puntos numerados Sesna/SREV de intensidad oficial.
-- Apartado NDMA Japan para avisos y publicaciones de gestión de desastres. NDMA no se confunde con JMA; las capas opcionales de riesgo GSI no son polígonos de afectación del aviso.
-- Avisos de tsunami JMA y boletines PTWC/NTWC/NOAA disponibles en el módulo correspondiente.
+El monitor prioriza el respaldo usado para sortear la falta de CORS de Mangxu en navegadores móviles y puede recurrir a la consulta directa como alternativa. La marca de conexión indica una respuesta válida reciente del feed, no frescura de cada evento, confirmación por la agencia de origen ni aprobación de uso para protección civil. Los eventos deben conservar su atribución de fuente agregada.
 
-### Alertas meteorológicas, tsunami y ambientales
+## Estado de conexión: cómo interpretarlo
 
-- Seguimiento cartográfico de tifones/ciclones tropicales, incluyendo productos JMA/NMC y proveedores contemplados por el código.
-- Panel NOAA/NHC para sistemas tropicales y módulo NWS para alertas meteorológicas de Estados Unidos; incluye los detalles/zonas publicados por el feed y el radar NOAA disponible en la vista.
-- Avisos de tsunami JMA y productos PTWC/NTWC/NOAA, con áreas y geometrías solo cuando el producto las entrega.
-- Alertas globales GDACS en su apartado cartográfico y panel separado de clima espacial NOAA/SWPC.
-- Vista de avisos volcánicos mundiales y apartados volcánicos JMA y Colombia/Caribe cuando hay datos de las fuentes integradas.
-- SIAT-CT México: módulo para nuevos avisos de ciclón tropical con enlace al boletín oficial y geometrías del servicio cuando están disponibles.
-- Un sondeo repetido de una alerta existente no se trata automáticamente como novedad nueva.
+- La etiqueta es una señal técnica de respuesta reciente o WebSocket activo, no una evaluación de calidad científica ni una garantía de disponibilidad futura.
+- Las fuentes con caché pueden seguir mostrando eventos anteriores aunque estén desconectadas; los eventos almacenados no renuevan por sí solos la conexión.
+- Algunos catálogos pueden responder correctamente y no contener sismos recientes. “Conectada” no quiere decir “hay sismos nuevos”.
+- Los límites de tiempo y el método de comprobación varían según la fuente. CORS, servicios proxy, redes móviles, el navegador o el proveedor pueden impedir consultas aunque el endpoint esté disponible desde otro entorno.
+- El estado SGC debe considerarse desconectado mientras su endpoint no responda por una ruta oficial verificable.
 
-### Colombia: movilidad y otras herramientas
+## Límites y uso responsable
 
-- **Movilidad Bogotá:** apartado con mapa y localidades, avisos por categorías como accidentes, manifestaciones, cierres, TransMilenio, clima y tráfico, además de accesos a Waze e INVÍAS.
-- **TransMilenio:** consulta a través del Worker configurado; las fichas deben conservar la hora de reporte real. Si el proveedor devuelve un corte antiguo, no se debe llamar “en vivo”.
-- Vista Colombia/Caribe para reportes volcánicos y de tsunami, con accesos a las fuentes incorporadas.
-- Búsqueda meteorológica de ciudades y consulta de condiciones actuales disponibles mediante Open-Meteo.
-- Seguimiento de partidos de Colombia y avisos/efectos configurables cuando los datos del servicio están disponibles. El monitor no debe inferir goles a partir de un calendario sin marcador real.
+- Este monitor es una herramienta informativa y no sustituye a las agencias oficiales ni las instrucciones de protección civil.
+- “Oficial”, “agregado”, “estimado”, “aproximado” e “instrumental” no son equivalentes. No se deben inferir intensidades oficiales, PGA/PGV/PGD medidos, epicentros confirmados ni alertas activas a partir de datos ausentes.
+- Las consultas externas pueden cambiar, bloquearse o dejar de responder. La disponibilidad real debe comprobarse en el dispositivo donde se ejecuta el HTML.
+- Las voces dependen de las capacidades del navegador y de los paquetes de voz instalados; no se verificó pronunciación ni reproducción en dispositivos físicos.
 
-### Audio, notificaciones y presentación
+## Licencias y atribución
 
-- Controles para habilitar sonidos y ajustar el volumen general; sonidos incorporados SREV y sonidos de interfaz.
-- Notificaciones del navegador opcionales, sujetas a permiso del usuario, compatibilidad y disponibilidad.
-- Diseño con reglas adaptativas de pantalla; el rendimiento debe verificarse en el dispositivo concreto y no se garantiza una tasa de cuadros determinada.
+- El HTML conserva los avisos de licencia y atribución incluidos en el propio archivo. La cabecera declara componentes derivados/adaptados de SesnaQuake bajo **AGPL-3.0**; al redistribuir o publicar modificaciones, revisa y cumple las obligaciones aplicables y proporciona el código fuente correspondiente cuando la licencia lo exige.
+- Leaflet, servicios de mapas, agencias, feeds agregados, sonidos y demás datos/componentes pueden tener condiciones propias. Consulta las licencias y términos vigentes antes de reutilizarlos o redistribuirlos.
 
-## Fuentes retiradas de esta edición
+## Archivo descrito
 
-No se deben documentar como funciones activas las integraciones retiradas de PancakesAPI, UNGRD, IDEAM, EarthScope, RSBR y TexNet, ni las capas de estaciones GEOFON/GFZ. El catálogo sísmico GEOFON/GFZ se conserva por separado de esas capas. Esta edición tampoco incluye TTS.
-
-## Límites y lectura responsable
-
-- Este monitor no sustituye las instrucciones de organismos oficiales ni servicios públicos de protección civil.
-- “Oficial”, “instrumental”, “estimado” y “aproximado” tienen significados diferentes. Un cálculo o detector local no crea un sismo confirmado, una magnitud oficial o un epicentro oficial.
-- La existencia de un punto en un catálogo no prueba que esa estación esté transmitiendo ahora. Solo las tramas recientes y válidas respaldan una afirmación de telemetría actual.
-- Las capas de riesgo generales no deben atribuirse a un evento concreto si el informe no incluye geometría de afectación.
-- Las fuentes externas, workers/proxies, CORS, servicios de mapas y permisos pueden cambiar o dejar de responder. Los datos atrasados deben mostrarse con su hora real, no como datos en vivo.
-
-## Créditos y licencias
-
-- La cabecera del HTML declara **AGPL-3.0-or-later** y reconoce componentes derivados/adaptados de SesnaQuake. Al redistribuir/publicar una versión modificada, revisa y cumple las obligaciones aplicables de la licencia, incluida la disponibilidad del código fuente correspondiente.
-- Los sonidos SREV se atribuyen en el HTML a kotoho7 bajo **CC BY-SA 2.0**.
-- Leaflet, EOX Sentinel-2, Esri, JMA, GeoNet, agencias sísmicas, productos meteorológicos y demás datos conservan sus licencias, atribuciones y términos originales. Verifica las condiciones de cada proveedor antes de reutilizar o redistribuir sus datos.
+`EarthQuake_Japan_movil_ligero_Intensidad_fija_movimiento_TTS_Mangxu.html`
