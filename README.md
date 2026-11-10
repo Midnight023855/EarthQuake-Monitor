@@ -1,75 +1,89 @@
-# EarthQuake — variante móvil ligera
+# EarthQuake ligero — monitor sísmico en un HTML
 
-README de `EarthQuake_Japan_movil_ligero_Intensidad_fija_movimiento_TTS_Mangxu.html`. Esta variante está pensada para reducir trabajo no crítico en teléfonos compatibles, manteniendo activas las fuentes de EEW. Documenta lo presente en este archivo, no todas las funciones ni diferencias del HTML principal.
+README de `EarthQuake_Ligero_animaciones_JapanMonitor.html`. Esta edición reúne un mapa sísmico multiagencia, herramientas de consulta y módulos de observación instrumental. La disponibilidad depende de las fuentes externas, del navegador y de sus permisos.
 
-> No se verificó la interfaz en un teléfono ni se probó audio real. La conectividad y las voces disponibles dependen del dispositivo, el navegador y los servicios externos.
-
-## Novedades de esta versión
-
-- **TTS de informes sísmicos por idioma de agencia**, activable o silenciable en **Ajustes → Sonido y TTS**. La opción es independiente del audio general y guarda su preferencia.
-- La locución se limita a informes sísmicos nuevos elegibles; no se usa para EEW, tsunami, volcanes ni meteorología. El TTS requiere soporte de `SpeechSynthesis` y voces compatibles instaladas en el dispositivo.
-- Formatos de voz implementados para **BMKG** (indonesio), **JMA** (japonés), **CWA** (chino tradicional de Taiwán), **GeoNet** (inglés de Nueva Zelanda, para informes de calidad final), **CENC** y **CEIC** (chino simplificado). Son locuciones construidas por el monitor a partir de los campos disponibles; no son audio oficial de las agencias ni una garantía de reproducción exacta de sus boletines.
-- **CEIC:** la ficha grande identifica el reporte como “CEIC Report” junto a la hora.
-- **Catálogos Mangxu:** se incorporaron CEA-PR, AusPass, IPMA, RSN Costa Rica, INFP y CEIC. Se muestran como datos agregados de Mangxu, no como conexión directa verificada con cada agencia. El snapshot de CEA-PR es catálogo, no una trama EEW activa.
-- **Conexiones más estrictas:** la etiqueta “Conectada” ya no se mantiene por una caché o por un estado antiguo. Para las fuentes HTTP genéricas y Mangxu requiere una respuesta válida reciente; los WebSockets se juzgan por actividad reciente. En Mangxu, una respuesta válida sin eventos recientes también puede significar que el servicio respondió, no que haya sismos nuevos.
-- **SGC:** actualmente no conecta de forma verificable. El feed consultado devolvió HTTP 403 `AccessDenied` en las comprobaciones realizadas, y el respaldo FDSN no respondió. No se deben tratar datos guardados en caché como conexión activa ni confundir una fuente distinta con el SGC.
+> **Estado de verificación:** se revisó estáticamente el HTML y la sintaxis de algunos controladores. No se validó en navegador ni en teléfono que todas las vistas, conexiones, alertas o temporizadores funcionen de extremo a extremo. La presencia de una agencia en la interfaz no garantiza que su fuente conecte.
 
 ## Funciones presentes
 
-### Monitor sísmico y mapa
+### Mapa, lista y ajustes
 
-- Mapa interactivo y lista de sismos multiagencia, con selección de eventos y fichas de detalle.
-- Conserva la identificación de agencia/fuente y separa los reportes sísmicos, alertas tempranas y detecciones instrumentales. La selección de una fuente en la lista no garantiza que esté disponible en ese momento.
-- Visualización de las fuentes sísmicas y paneles integrados en este HTML; los eventos de Mangxu se identifican como agregados.
-- Presentación de hora en la interfaz según las reglas implementadas por el monitor; las locuciones TTS usan las zonas horarias propias configuradas para las agencias indicadas.
+- Mapa interactivo Leaflet con una lista de sismos, fichas de evento y controles de navegación.
+- Selector de agencias y filtros de lista, incluidos magnitud, región, sismos sentidos y nivel de zoom de selección.
+- Reloj y hora local de Colombia en los módulos correspondientes.
+- Ajustes de audio, volumen general, idioma de interfaz, modelo TauP, mapa, estaciones de Japón, detectores locales y métricas disponibles.
+- Fuentes cartográficas, capas y servicios externos dependen de su disponibilidad y condiciones de uso.
 
-### Intensidad, detección y alertas
+### Catálogo de sismos
 
-- Intensidad JMA, estaciones/observaciones japonesas y detección de movimiento conforme a los módulos incluidos en el archivo.
-- Integraciones TREM y P-Alert de Taiwán y sus herramientas de detección/observación. Una detección de movimiento instrumental no equivale a un epicentro oficial, una intensidad oficial ni una alerta temprana gubernamental.
-- EEW y frentes de ondas P/S calculados donde hay datos suficientes. Las ondas calculadas son estimaciones, no señales sísmicas medidas directamente.
-- Alertas de tsunami, tifones y otros módulos ambientales incorporados en la variante. La presencia de un panel no garantiza datos actuales de su proveedor.
-- Perfiles de rendimiento móvil reducen algunas tareas no críticas en dispositivos que cumplen los criterios declarados en los metadatos del HTML. No se afirma una tasa de cuadros ni estabilidad garantizada en un modelo concreto de teléfono.
+El HTML incorpora funciones de consulta para varias agencias y agregadores, entre ellas USGS/NEIC, JMA, CENC, EMSC, INGV, NOA, KOERI, GeoNet, BMKG, CSN, IG-EPN, SSN, PHIVOLCS, AFAD, INETER, GEOFON/GFZ, SGC y otros catálogos que aparecen en la lista o el código.
 
-### Audio y ajustes
+- Se conserva la atribución de agencia cuando está presente en los datos.
+- Algunos resultados provienen de agregadores; no equivalen a una conexión directa con la agencia indicada.
+- Los datos pueden tener revisiones y retrasos. Una fuente caída, una respuesta vacía o un evento guardado en caché no confirma que no haya ocurrido un sismo ni que la conexión esté activa.
+- La lista de agencias en pantalla indica una opción disponible en el HTML, no un estado operativo comprobado.
 
-- Controles de sonidos y volumen general.
-- Interruptor específico para TTS de informes sísmicos en Ajustes. Silenciar el TTS no implica apagar sonidos de alerta.
-- No se habla información estimada como si fuera una medición oficial. Las reglas de elegibilidad pueden omitir reportes a los que falten campos necesarios o cuya calidad no cumpla el criterio correspondiente.
+### SGC: estado conocido
 
-## Fuentes agregadas de Mangxu
+El HTML contiene un intento de consulta al feed oficial GeoJSON de cinco días del SGC y rutas de respaldo. **La conexión no quedó verificada y no debe considerarse operativa:** en las comprobaciones del 10 de noviembre de 2026, el feed devolvió `403 AccessDenied`, los proxies configurados no ofrecieron un respaldo válido y no se confirmó el FDSN alternativo. El servicio ArcGIS consultado expuso datos del catálogo, pero esas pruebas no demostraron que fuera una fuente adecuada de sismicidad reciente.
 
-Se consultan los catálogos de:
+Por tanto, este README **no promete que los sismos del visor SGC aparezcan en el monitor**. La vista del SGC puede incluir también eventos de otras agencias; sus datos no deben atribuirse todos al SGC sin comprobar la agencia de cada evento.
 
-- CEA-PR
-- AusPass
-- IPMA
-- RSN Costa Rica
-- INFP
-- CEIC
+### Japón y detección instrumental
 
-El monitor prioriza el respaldo usado para sortear la falta de CORS de Mangxu en navegadores móviles y puede recurrir a la consulta directa como alternativa. La marca de conexión indica una respuesta válida reciente del feed, no frescura de cada evento, confirmación por la agencia de origen ni aprobación de uso para protección civil. Los eventos deben conservar su atribución de fuente agregada.
+- El HTML conserva herramientas de estaciones japonesas y observación instrumental de las fuentes implementadas, así como opciones de métricas.
+- Los detectores locales de actividad instrumental son distintos de un catálogo de sismos confirmados y de una alerta oficial. Un grupo de estaciones o un cuadro de movimiento no establece por sí solo un epicentro o una magnitud oficial.
+- Una ubicación de catálogo no prueba que la estación transmita en vivo. Las lecturas y métricas solo son actuales cuando llegan tramas válidas y recientes.
+- Los cálculos o valores aproximados no deben describirse como mediciones oficiales.
 
-## Estado de conexión: cómo interpretarlo
+### Taiwán: TREM y P-Alert
 
-- La etiqueta es una señal técnica de respuesta reciente o WebSocket activo, no una evaluación de calidad científica ni una garantía de disponibilidad futura.
-- Las fuentes con caché pueden seguir mostrando eventos anteriores aunque estén desconectadas; los eventos almacenados no renuevan por sí solos la conexión.
-- Algunos catálogos pueden responder correctamente y no contener sismos recientes. “Conectada” no quiere decir “hay sismos nuevos”.
-- Los límites de tiempo y el método de comprobación varían según la fuente. CORS, servicios proxy, redes móviles, el navegador o el proveedor pueden impedir consultas aunque el endpoint esté disponible desde otro entorno.
-- El estado SGC debe considerarse desconectado mientras su endpoint no responda por una ruta oficial verificable.
+El HTML conserva módulos para telemetría/detección instrumental de TREM y P-Alert y sus paneles de métricas. Su disponibilidad depende de sus feeds y del entorno. Movimiento detectado no equivale a un EEW oficial, a Shindo oficial ni a un epicentro confirmado. No se deben completar valores que la fuente no entrega.
 
-## Límites y uso responsable
+### Apartados adicionales
 
-- Este monitor es una herramienta informativa y no sustituye a las agencias oficiales ni las instrucciones de protección civil.
-- “Oficial”, “agregado”, “estimado”, “aproximado” e “instrumental” no son equivalentes. No se deben inferir intensidades oficiales, PGA/PGV/PGD medidos, epicentros confirmados ni alertas activas a partir de datos ausentes.
-- Las consultas externas pueden cambiar, bloquearse o dejar de responder. La disponibilidad real debe comprobarse en el dispositivo donde se ejecuta el HTML.
-- Las voces dependen de las capacidades del navegador y de los paquetes de voz instalados; no se verificó pronunciación ni reproducción en dispositivos físicos.
+El HTML contiene paneles y controladores para las funciones listadas a continuación; su presencia no garantiza que cada proveedor esté respondiendo:
+
+- Centro meteorológico y consultas del tiempo.
+- Alertas meteorológicas JMA y alertas NWS/NOAA de Estados Unidos.
+- Tifones y huracanes/ciclones tropicales.
+- Avisos y productos de tsunami JMA y NOAA/PTWC/NTWC.
+- Volcanes JMA y una vista de volcanes/avisos de Colombia y el Caribe.
+- Alertas globales GDACS y panel de clima espacial NOAA/SWPC.
+- Módulos de movilidad de Bogotá, incluyendo avisos y enlaces de consulta.
+- NDMA Japón y módulos adicionales visibles en el archivo, como SIAT-CT.
+- Radar meteorológico RainViewer integrado en los mapas compatibles.
+
+Cada apartado tiene su propia fuente, política de actualización y criterios de apertura. Debe consultarse la hora y el estado que muestre el propio panel.
+
+### Recorrido por apartados
+
+- En Ajustes hay un control **Recorrido por apartados** y un intervalo configurable entre 1 y 60 minutos, con 1 minuto como valor inicial.
+- El HTML incluye una lista de apartados para recorrer y una preferencia guardada en el navegador.
+- La existencia del control y su código se comprobaron estáticamente, pero **no se probó el recorrido en navegador**. No se garantiza que cada paso abra correctamente ni que todos los temporizadores o avisos automáticos queden suprimidos mientras esté activo.
+
+### Sonidos y voz
+
+- El HTML incluye sonidos de interfaz y de alertas, ajustes de audio y control de volumen.
+- También incluye síntesis de voz (`SpeechSynthesis`) para informes sísmicos nuevos que cumplan los criterios del código. El idioma de locución puede variar según la agencia; la voz depende del navegador y de las voces instaladas.
+- No se verificó reproducción de sonido ni pronunciación en un dispositivo físico.
+
+## EEW y ondas
+
+Las conexiones y entradas de agencias EEW que se retiraron de esta edición no se deben presentar como fuentes operativas. El HTML puede conservar código o estilos antiguos residuales, por lo que la inspección estática no equivale a una auditoría dinámica exhaustiva de todos los caminos de ejecución. La presencia de funciones TauP o código heredado no demuestra que haya una alerta EEW conectada o vigente.
+
+## Uso responsable y limitaciones
+
+- Este HTML es una herramienta informativa; no sustituye a las agencias ni a las instrucciones de protección civil.
+- Distingue sismos de catálogo, reportes preliminares, detección instrumental y estimaciones. No infieras una medición oficial a partir de una aproximación o de datos ausentes.
+- CORS, proxies, endpoints, permisos del navegador, servicios de mapas y redes móviles pueden bloquear o retrasar consultas.
+- Revisa la fuente y la hora del dato antes de tomar decisiones; no uses el indicador de conexión como confirmación de telemetría reciente si no hay una lectura válida.
 
 ## Licencias y atribución
 
-- El HTML conserva los avisos de licencia y atribución incluidos en el propio archivo. La cabecera declara componentes derivados/adaptados de SesnaQuake bajo **AGPL-3.0**; al redistribuir o publicar modificaciones, revisa y cumple las obligaciones aplicables y proporciona el código fuente correspondiente cuando la licencia lo exige.
-- Leaflet, servicios de mapas, agencias, feeds agregados, sonidos y demás datos/componentes pueden tener condiciones propias. Consulta las licencias y términos vigentes antes de reutilizarlos o redistribuirlos.
+- Los metadatos del HTML declaran **AGPL-3.0-or-later** y reconocen componentes derivados/adaptados de SesnaQuake. Antes de redistribuir una versión modificada, revisa y cumple la licencia y las atribuciones que correspondan.
+- Los sonidos, mapas, bibliotecas, datos y servicios externos pueden tener licencias y términos independientes. Consulta las condiciones de cada proveedor antes de reutilizarlos.
 
 ## Archivo descrito
 
-`EarthQuake_Japan_movil_ligero_Intensidad_fija_movimiento_TTS_Mangxu.html`
+`EarthQuake_Ligero_animaciones_JapanMonitor.html`
