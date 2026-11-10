@@ -1,6 +1,6 @@
 # EarthQuake ligero — monitor sísmico en un HTML
 
-README de `EarthQuake_Ligero_animaciones_JapanMonitor.html`. Esta edición reúne un mapa sísmico multiagencia, herramientas de consulta y módulos de observación instrumental. La disponibilidad depende de las fuentes externas, del navegador y de sus permisos.
+README de `index.html`. Esta edición reúne un mapa sísmico multiagencia, herramientas de consulta y módulos de observación instrumental. La disponibilidad depende de las fuentes externas, del navegador y de sus permisos.
 
 > **Estado de verificación:** se revisó estáticamente el HTML y la sintaxis de algunos controladores. No se validó en navegador ni en teléfono que todas las vistas, conexiones, alertas o temporizadores funcionen de extremo a extremo. La presencia de una agencia en la interfaz no garantiza que su fuente conecte.
 
