@@ -83,7 +83,3 @@ Las conexiones y entradas de agencias EEW que se retiraron de esta edición no s
 
 - Los metadatos del HTML declaran **AGPL-3.0-or-later** y reconocen componentes derivados/adaptados de SesnaQuake. Antes de redistribuir una versión modificada, revisa y cumple la licencia y las atribuciones que correspondan.
 - Los sonidos, mapas, bibliotecas, datos y servicios externos pueden tener licencias y términos independientes. Consulta las condiciones de cada proveedor antes de reutilizarlos.
-
-## Archivo descrito
-
-`EarthQuake_Ligero_animaciones_JapanMonitor.html`
