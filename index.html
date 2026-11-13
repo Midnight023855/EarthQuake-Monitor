@@ -4652,6 +4652,39 @@ body.sismos-meteo-quiet #mainLayout .map-container{visibility:hidden}
   box-shadow:0 8px 24px rgba(0,0,0,.42);
 }
 </style>
+
+<style id="typhoon-fanstudio-shindo-inspired">
+/* Referencia visual propia para la capa asiática Fan Studio; sin cambios de datos ni lógica. */
+#typhoonPanel .typhoon-card.fan-studio-typhoon{
+  border:1px solid rgba(255,124,91,.30)!important;
+  border-left:3px solid rgba(255,106,86,.92)!important;
+  border-radius:10px!important;
+  background:linear-gradient(145deg,rgba(25,29,43,.97),rgba(10,17,30,.98))!important;
+  box-shadow:0 5px 18px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.035)!important;
+}
+#typhoonPanel .fan-studio-typhoon .typhoon-card-head{gap:9px!important;margin-bottom:8px!important}
+#typhoonPanel .fan-studio-typhoon .typhoon-name{color:#f5f6fa!important;font-size:14px!important;letter-spacing:.01em}
+#typhoonPanel .fan-studio-typhoon .typhoon-name small{display:block;margin-top:3px;color:#9ca9bb;font-size:10px;font-weight:500}
+#typhoonPanel .fan-studio-typhoon .typhoon-badge{border-radius:5px!important;letter-spacing:.035em}
+#typhoonPanel .fan-studio-typhoon .typhoon-badge.cat-strong{background:rgba(255,84,78,.18)!important;border-color:rgba(255,115,91,.55)!important;color:#ffb4a4!important;box-shadow:0 0 12px rgba(255,85,70,.12)}
+#typhoonPanel .fan-studio-typhoon .typhoon-meta{gap:6px!important;font-size:10.5px!important;color:#cad1dd!important}
+#typhoonPanel .fan-studio-typhoon .typhoon-meta span{padding:5px 7px;border:1px solid rgba(167,184,205,.12);border-radius:6px;background:rgba(3,11,22,.36)}
+#typhoonPanel .fan-studio-typhoon .typhoon-position{color:#bac4d3;font-size:10px}
+#typhoonPanel .fan-studio-typhoon .typhoon-power-bar{opacity:.9}
+#typhoonPanel .fan-studio-typhoon .typhoon-source{color:#8390a2!important;border-top-color:rgba(173,189,209,.12)!important}
+#mainLayout.typhoon-focus .leaflet-overlay-pane path.typhoon-track-fan-studio.typhoon-track-observed{
+  stroke-linecap:round!important;stroke-linejoin:round!important;stroke-width:3.6px!important;filter:drop-shadow(0 0 4px rgba(235,243,255,.68))!important
+}
+#mainLayout.typhoon-focus .leaflet-overlay-pane path.typhoon-track-fan-studio.typhoon-track-forecast{
+  stroke:#ff9a66!important;stroke-width:3px!important;stroke-opacity:.98!important;stroke-dasharray:2 7!important;stroke-linecap:round!important;filter:drop-shadow(0 0 4px rgba(255,121,82,.78))!important
+}
+#mainLayout.typhoon-focus .leaflet-overlay-pane circle.typhoon-center-fan-studio{
+  stroke:#ff806a!important;stroke-width:1.7px!important;stroke-opacity:.9!important;filter:drop-shadow(0 0 6px rgba(255,103,84,.72))!important
+}
+#mainLayout.typhoon-focus .leaflet-overlay-pane circle.typhoon-point-fan-studio{filter:drop-shadow(0 0 3px rgba(255,226,208,.78))!important}
+#mainLayout.typhoon-focus .leaflet-overlay-pane circle.typhoon-current-fan-studio{filter:drop-shadow(0 0 8px rgba(255,119,78,.95))!important}
+@media(prefers-reduced-motion:reduce){#mainLayout.typhoon-focus .leaflet-overlay-pane circle.typhoon-center-fan-studio{animation:none!important}}
+</style>
 <style id="bogota-movilidad-style">
 #bogMovSection{display:none;position:absolute;z-index:4600;top:12px;left:12px;width:min(420px,calc(100% - 24px));max-height:calc(100% - 24px);box-sizing:border-box;color:#eef6ff;background:rgba(7,17,29,.97);border:1px solid #46c7ff;border-left:4px solid #ffb020;border-radius:8px;box-shadow:0 8px 24px #000a;font:12px/1.4 system-ui;flex-direction:column;overflow:hidden;}
 #bogMovSection.active, #volcCarSection.active{display:flex;}
@@ -5491,7 +5524,7 @@ html body #mapActionToolbar #multiClockPanel .clock-time{
 html body #mapActionToolbar #btnRainRadar{display:none!important;visibility:hidden!important;pointer-events:none!important}
 @media(max-width:560px){#eqSettingsDialog #eqsMainApartments .eqs-apartment-grid{grid-template-columns:1fr}}
 </style>
-<style id="eq-no-eew-display">#jmaEewPanel,#jmaEewMessage,#ingvEewPanel,#sesnaEewBanner{display:none!important}</style><style id="eq-no-eew-display-final">#jmaEewPanel,#jmaEewMessage,#ingvEewPanel,#sesnaEewBanner{display:none!important;visibility:hidden!important;pointer-events:none!important}</style></head>
+<style id="eq-no-eew-display">/* EEW panels enabled */</style><style id="eq-no-eew-display-final">/* EEW panels enabled */</style></head>
 <body>
 <script id="eq-antibug-core">
 (() => {
@@ -5550,6 +5583,13 @@ html body #mapActionToolbar #btnRainRadar{display:none!important;visibility:hidd
 
     <div class="main" id="mainLayout">
         <div class="left-panel">
+                        <div id="sesnaEewBanner" class="idle" role="status" aria-live="polite" aria-label="Estado de alerta temprana">
+                <div class="sesna-eew-header">
+                    <span class="sesna-eew-title" id="sesnaEewTitle">Sin alertas tempranas de terremoto</span>
+                    <span class="sesna-eew-report"><span id="sesnaEewReportLabel">Informe</span> <span id="sesnaEewReportValue"></span></span>
+                </div>
+            </div>
+
 <div class="current-event" id="currentEvent">
                 <div id="cencAutoHeading" class="cenc-auto-heading" hidden>CENC (Auto) Information</div>
                 <div class="intensity-big">
@@ -8992,7 +9032,7 @@ global.TauPJS=api;
                 const en = String(t.enname || '').trim();
                 const localName = String(t.name || t.cname || '').trim();
                 const subtitle = [t.tfid, en && en !== localName ? en : ''].filter(Boolean).join(' · ');
-                return `<div class="typhoon-card${String(t.tfid)===String(typhoonFocusId)?' is-focused':''}">
+                return `<div class="typhoon-card${t.source === 'Fan Studio' ? ' fan-studio-typhoon' : ''}${String(t.tfid)===String(typhoonFocusId)?' is-focused':''}">
                   <div class="typhoon-card-head">
                     <span class="typhoon-status-dot is-active" title="activo"></span>
                     <div class="typhoon-name">${typhoonDisplayName(t)}${subtitle ? `<small>${subtitle}</small>` : ''}</div>
@@ -9026,24 +9066,26 @@ global.TauPJS=api;
             (active || []).forEach(t => {
                 const actual=activeTyphoonPoints(t),forecast=forecastTyphoonPoints(t),name=typhoonDisplayName(t);
                 const latest=actual[actual.length-1]||null,kind=typhoonTrackClass(latest?.raw?.strong||latest?.raw?.class||t.category);
+                const fanStudioVisual=t.source==='Fan Studio';
+                // Colores de intensidad/datos se mantienen; el estilo Fan Studio se aplica solo a la presentación.
                 // Colores estilo Fan Studio (por potencia / viento)
                 const color = (latest?.raw?.power != null)
                     ? fanStudioTyphoonColor(latest.raw.power)
                     : fanStudioColorFromWindMps(latest?.raw?.windMps);
-                if(actual.length>1)L.polyline(actual.map(p=>[p.lat,p.lon]),{renderer:typhoonSvgRenderer,color,weight:3.2,opacity:1,dashArray:null,lineCap:'round',className:`typhoon-track-observed ${kind}`}).addTo(typhoonLayer);
+                if(actual.length>1)L.polyline(actual.map(p=>[p.lat,p.lon]),{renderer:typhoonSvgRenderer,color,weight:3.2,opacity:1,dashArray:null,lineCap:'round',className:`typhoon-track-observed ${kind}${fanStudioVisual?' typhoon-track-fan-studio':''}`}).addTo(typhoonLayer);
                 actual.slice(0,-1).forEach(p=>{
                     const pc = (p.raw?.power != null) ? fanStudioTyphoonColor(p.raw.power) : fanStudioColorFromWindMps(p.raw?.windMps);
-                    L.circleMarker([p.lat,p.lon],{renderer:typhoonSvgRenderer,radius:2.1,color:'#fff',weight:.8,fillColor:pc,fillOpacity:.95,className:'typhoon-point-observed',interactive:false}).addTo(typhoonLayer);
+                    L.circleMarker([p.lat,p.lon],{renderer:typhoonSvgRenderer,radius:2.1,color:'#fff',weight:.8,fillColor:pc,fillOpacity:.95,className:`typhoon-point-observed${fanStudioVisual?' typhoon-point-fan-studio':''}`,interactive:false}).addTo(typhoonLayer);
                 });
                 if(forecast.length){
                     const start=latest||forecast[0],line=[[start.lat,start.lon],...forecast.map(p=>[p.lat,p.lon])];
-                    L.polyline(line,{renderer:typhoonSvgRenderer,color,weight:2.8,opacity:.95,dashArray:'1 9',lineCap:'round',className:`typhoon-track-forecast ${kind}`}).addTo(typhoonLayer);
-                    forecast.forEach(p=>L.circleMarker([p.lat,p.lon],{renderer:typhoonSvgRenderer,radius:2,color:'#fff',weight:.7,fillColor:color,fillOpacity:.75,className:'typhoon-point-forecast',interactive:false}).addTo(typhoonLayer));
+                    L.polyline(line,{renderer:typhoonSvgRenderer,color,weight:2.8,opacity:.95,dashArray:'1 9',lineCap:'round',className:`typhoon-track-forecast ${kind}${fanStudioVisual?' typhoon-track-fan-studio':''}`}).addTo(typhoonLayer);
+                    forecast.forEach(p=>L.circleMarker([p.lat,p.lon],{renderer:typhoonSvgRenderer,radius:2,color:'#fff',weight:.7,fillColor:color,fillOpacity:.75,className:`typhoon-point-forecast${fanStudioVisual?' typhoon-point-fan-studio':''}`,interactive:false}).addTo(typhoonLayer));
                 }
                 const center=latest||forecast[0];
                 if(center){
-                    L.circleMarker([center.lat,center.lon],{renderer:typhoonSvgRenderer,radius:9,color,weight:1.2,opacity:.65,fillColor:color,fillOpacity:.08,className:'typhoon-center-halo',interactive:false}).addTo(typhoonLayer);
-                    L.circleMarker([center.lat,center.lon],{renderer:typhoonSvgRenderer,radius:3.4,color:'#fff',weight:1.4,fillColor:color,fillOpacity:1,className:'typhoon-point-current'})
+                    L.circleMarker([center.lat,center.lon],{renderer:typhoonSvgRenderer,radius:9,color,weight:1.2,opacity:.65,fillColor:color,fillOpacity:.08,className:`typhoon-center-halo${fanStudioVisual?' typhoon-center-fan-studio':''}`,interactive:false}).addTo(typhoonLayer);
+                    L.circleMarker([center.lat,center.lon],{renderer:typhoonSvgRenderer,radius:3.4,color:'#fff',weight:1.4,fillColor:color,fillOpacity:1,className:`typhoon-point-current${fanStudioVisual?' typhoon-current-fan-studio':''}`})
                         .bindPopup(`<b>🌀 ${name}</b><br>${latest?.raw?.strong||latest?.raw?.class||t.category||'Sistema tropical'}<br>`+
                             (latest?.raw?.source?`Fuente: ${latest.raw.source}<br>`:'')+
                             (latest?.raw?.pressure?`Presión: ${latest.raw.pressure} hPa<br>`:'')+
@@ -12093,16 +12135,59 @@ global.TauPJS=api;
             try { if (typeof deactivateWaveMode === 'function' && waveMode) deactivateWaveMode(); } catch (_) {}
             const layout = document.getElementById('mainLayout');
             layout?.classList.remove('wave-focus','eew-main-priority');
+            try { window.__eqEewSuppressOtherApartments = false; } catch (_) {}
+            try { window.__eqApartmentQueue?.flushAfterEew?.(); } catch (_) {}
             try { window.__sesnaEewBannerSync?.(); } catch (_) {}
             try { map?.invalidateSize({pan:false}); } catch (_) {}
             return true;
         }
-        function activateEewMainView(ev, options = {}) {return false;}
+        function activateEewMainView(ev, options = {}) {
+            // Vista principal EEW (estilo SesnaQuake): mismo id = mismo aviso activo,
+            // mapa + ondas + prioridad sobre otros apartados hasta cancel/timeout/final.
+            if (!ev || typeof ev !== 'object') return false;
+            options = options || {};
+            const id = String(ev.id || ev.EventID || ev.eewEventId || '').trim();
+            if (!id) return false;
+            if (ev.isCancel || ev.cancelled) {
+                try { releaseEewMainPriority(); } catch (_) {}
+                return false;
+            }
+            try {
+                eewMainPriorityEventKey = id;
+                eewMainPriorityEventId = String(ev.eewEventId || ev.EventID || id);
+                if (!ev.isFinal && !ev.officialTerminal) eewMainPriorityFinal = false;
+                window.__eqEewSuppressOtherApartments = true;
+            } catch (_) {}
+            try {
+                if (typeof ensureEewEventSelectedForMap === 'function') ensureEewEventSelectedForMap(ev);
+                else if (typeof selectEvent === 'function') {
+                    selectEvent(id, { autoFocus: true, forceMap: true, overrideManual: true, forceAlertZoom: true, skipIntensityFocus: true });
+                }
+            } catch (_) {}
+            try {
+                if (ev.isTaupEew || ev.waveOriginTs) {
+                    if (typeof showWolfxAllEewWaves === 'function') showWolfxAllEewWaves(ev);
+                    else if (typeof showGenericTaupEewWaves === 'function') showGenericTaupEewWaves(ev);
+                }
+            } catch (_) {}
+            try {
+                const layout = document.getElementById('mainLayout');
+                layout?.classList.remove('jma-weather-focus','jma-volcano-focus','typhoon-focus','hurricane-focus','us-alerts-focus','tsunami-focus','taiwan-focus','taiwan-motion-focus','gdacs-focus','bog-focus','siat-focus','ndma-focus','korea-focus');
+                if (!options.skipWaveFocus) layout?.classList.add('wave-focus');
+            } catch (_) {}
+            try { window.__eqExclusiveAlertApartments?.closeOtherApartments?.('ynEarlyAlert'); } catch (_) {}
+            try { window.__sesnaEewBannerSync?.(); } catch (_) {}
+            try { if (typeof enforceEewMainPriority === 'function') enforceEewMainPriority(); } catch (_) {}
+            return true;
+        }
         function enforceEewMainPriority() {
             if(eewMainPriorityEventKey && eewMainPriorityFinal && !eewMainLocalActivity()) { releaseEewMainPriority(); return false; }
             if(!eewMainPriorityActive())return false;
             const layout=document.getElementById('mainLayout');
-            layout?.classList.remove('japan-focus','wave-focus','jma-weather-focus','jma-volcano-focus','typhoon-focus','hurricane-focus','us-alerts-focus','tsunami-focus','taiwan-focus','taiwan-motion-focus','gdacs-focus','bog-focus','siat-focus','ndma-focus','korea-focus');
+            layout?.classList.remove('japan-focus','jma-weather-focus','jma-volcano-focus','typhoon-focus','hurricane-focus','us-alerts-focus','tsunami-focus','taiwan-focus','taiwan-motion-focus','gdacs-focus','bog-focus','siat-focus','ndma-focus','korea-focus','volc-focus');
+            layout?.classList.add('wave-focus','eew-main-priority');
+            try { window.__eqEewSuppressOtherApartments = true; } catch (_) {}
+            try { window.__eqExclusiveAlertApartments?.closeOtherApartments?.('mainLayout'); } catch (_) {}
             try { window.__eqExclusiveAlertApartments?.closeOtherApartments?.('ynEarlyAlert'); } catch (_) {}
             return true;
         }
@@ -16217,9 +16302,7 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
             loadTaiwanStations._busy = true;
             try {
                 const urls = [
-                    'https://api.lb-tpe1.exptech.dev/resource/station',
-                    'https://api.lb-khh1.exptech.dev/resource/station',
-                    'https://raw.githubusercontent.com/ExpTechTW/DPIP/main/resource/station'
+                    PALERT_PROXY_URL + '/trem/stations'
                 ];
                 let csv = '';
                 for (const url of urls) {
@@ -16282,20 +16365,13 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
             let reader = null;
             try {
                 if (!Object.keys(taiwanStationMeta || {}).length) { await loadTaiwanStations(); return; }
-                const hosts = ['https://api.lb-tpe1.exptech.dev', 'https://api.lb-khh1.exptech.dev'];
-                let response = null, lastError = null;
-                for (const host of hosts) {
-                    try {
-                        const controller = new AbortController();
-                        updateTaiwanRTS._controller = controller;
-                        response = await fetch(host + '/api/v1/trem/sse?topics=trem.rts.v1&mode=live', {
-                            cache: 'no-store', signal: controller.signal, headers: { Accept: 'text/event-stream' }
-                        });
-                        if (response.ok && response.body) break;
-                        throw new Error('SSE HTTP ' + response.status);
-                    } catch (error) { lastError = error; response = null; }
-                }
-                if (!response || !response.ok || !response.body) throw lastError || new Error('TREM SSE no disponible');
+                const tremSseUrl = PALERT_PROXY_URL + '/trem/rts?topics=trem.rts.v1&mode=live';
+                const controller = new AbortController();
+                updateTaiwanRTS._controller = controller;
+                const response = await fetch(tremSseUrl, {
+                    cache: 'no-store', signal: controller.signal, headers: { Accept: 'text/event-stream' }
+                });
+                if (!response.ok || !response.body) throw new Error('Worker TREM SSE HTTP ' + response.status);
                 reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let buffer = '';
@@ -19174,8 +19250,14 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
             }
         }
         async function fetchExtraAgencies() {
-            const out = await Promise.allSettled([fetchSGC(),...MANGXU_CATALOGS.map(fetchMangxuCatalog)]);
-            return out.flatMap(r => r.status === 'fulfilled' && Array.isArray(r.value) ? r.value : []);
+            const work = Promise.allSettled([
+                Promise.resolve().then(() => fetchSGC()).catch(() => []),
+                ...MANGXU_CATALOGS.map(c => Promise.resolve().then(() => fetchMangxuCatalog(c)).catch(() => []))
+            ]);
+            const timed = new Promise(resolve => setTimeout(() => resolve(null), 5000));
+            const out = await Promise.race([work, timed]);
+            if (!out) return [];
+            return out.flatMap(r => r && r.status === 'fulfilled' && Array.isArray(r.value) ? r.value : []);
         }
         const fetchNOA = () => fetchFdsnAgency('noa', 'NOA', 'https://eida.gein.noa.gr');
         // KOERI: lista pública (texto) de Kandilli; la hora viene en TSİ (UTC+3), no en UTC. Sin CORS y en http → proxies.
@@ -20215,6 +20297,14 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
         // ——— BMKG TEWS oficial ———
         const BMKG_TEWS_AUTO = 'https://data.bmkg.go.id/DataMKG/TEWS/autogempa.json';
         const BMKG_TEWS_TERKINI = 'https://data.bmkg.go.id/DataMKG/TEWS/gempaterkini.json';
+        const BMKG_WRS_LASTQL = 'https://bmkg-content-inatews.storage.googleapis.com/lastQL.json';
+        const BMKG_WRS_DATAGEMPA = 'https://bmkg-content-inatews.storage.googleapis.com/datagempa.json';
+        const BMKG_WRS_FRESH_MS = 8 * 60 * 1000;
+        let bmkgLastWaveId = '';
+        let bmkgLastWaveEvent = null;
+        let bmkgWrsLiveReady = false;
+        let bmkgWrsTimer = null;
+        let bmkgWrsSeenIds = new Set();
 
         async function bmkgFetchJson(url, timeout = 12000) {
             const attempts = [
@@ -20280,6 +20370,264 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
                 country: 'Indonesia',
                 url: q.Shakemap ? ('https://data.bmkg.go.id/DataMKG/TEWS/' + q.Shakemap) : null
             };
+        }
+
+        function bmkgParseTime(raw) {
+            if (raw == null) return NaN;
+            if (typeof raw === 'number' && Number.isFinite(raw)) return raw < 1e12 ? raw * 1000 : raw;
+            let s = String(raw).trim();
+            // Normaliza a UTC las horas BMKG sin zona explícita.
+            const hasTimezone = /(?:[zZ]|[+\-]\d{2}(?::?\d{2})?)$/.test(s);
+            if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(s) && !hasTimezone) {
+                s = s.replace(' ', 'T').replace(/\.\d+$/, '') + 'Z';
+            }
+            const ts = Date.parse(s);
+            if (Number.isFinite(ts)) return ts;
+            try { return parseTs(raw); } catch (_) { return NaN; }
+        }
+
+        function bmkgEventFromTewsGempa(q) {
+            if (!q) return null;
+            let lat = NaN, lon = NaN;
+            if (q.Coordinates) {
+                const parts = String(q.Coordinates).split(',').map(Number);
+                lat = parts[0]; lon = parts[1];
+            }
+            if (!Number.isFinite(lat)) lat = parseFloat(String(q.Lintang || '').replace(/[^\d.\-]/g, ''));
+            if (!Number.isFinite(lon)) lon = parseFloat(String(q.Bujur || '').replace(/[^\d.\-]/g, ''));
+            const mag = Number(q.Magnitude);
+            let ts = bmkgParseTime(q.DateTime || ((q.Tanggal || '') + ' ' + (q.Jam || '')));
+            if (!Number.isFinite(ts)) ts = Date.now();
+            if (!Number.isFinite(mag) || !Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+            const intensity = (typeof magToMMI === 'function') ? magToMMI(mag) : Math.max(1, Math.round(mag));
+            return {
+                id: 'bmkg-tews-' + String(q.Shakemap || q.DateTime || q.Tanggal + q.Jam),
+                intensity,
+                place: String(q.Wilayah || 'Indonesia'),
+                displayPlace: String(q.Wilayah || 'Indonesia'),
+                time: (typeof formatTime === 'function' ? formatTime(ts) : new Date(ts).toISOString()),
+                mag: (typeof magnitudeDisplay === 'function' ? magnitudeDisplay(mag) : ('M' + mag)),
+                depth: String(q.Kedalaman || '—'),
+                agency: 'BMKG',
+                ts, lat, lon,
+                felt: q.Dirasakan || null,
+                tsunami: /tsunami/i.test(String(q.Potensi || '')) && !/tidak|no /i.test(String(q.Potensi || '')),
+                colorClass: (typeof intensityClass === 'function' ? intensityClass(intensity) : 'int-1'),
+                reportConfidence: 'TEWS',
+                country: 'Indonesia',
+                url: q.Shakemap ? ('https://data.bmkg.go.id/DataMKG/TEWS/' + q.Shakemap) : null
+            };
+        }
+
+        
+        function sameBmkgWaveEpisode(a, b) {
+            if (!a || !b) return false;
+            try {
+                if (String(a.id) && String(a.id) === String(b.id)) return true;
+                const dt = Math.abs((Number(a.ts) || 0) - (Number(b.ts) || 0));
+                const dlat = Math.abs((Number(a.lat) || 0) - (Number(b.lat) || 0));
+                const dlon = Math.abs((Number(a.lon) || 0) - (Number(b.lon) || 0));
+                return dt < 90000 && dlat < 0.35 && dlon < 0.35;
+            } catch (_) { return false; }
+        }
+
+        function bmkgEventFromLastQLFeature(f) {
+            if (!f) return null;
+            const p = f.properties || {};
+            const c = (f.geometry && f.geometry.coordinates) || [];
+            const lon = Number(c[0]);
+            const lat = Number(c[1]);
+            const depthKm = Number(c[2]);
+            const mag = Number(String(p.mag ?? p.magnitude ?? '').replace(/[^\d.]/g, ''));
+            // lastQL de InaTEWS suele traer hora local Indonesia (WIB=UTC+7) sin zona.
+            let ts = NaN;
+            const timeRaw = p.time || p.origin_time || p.originTime || p.datetime || '';
+            if (typeof timeRaw === 'number' && Number.isFinite(timeRaw)) {
+                ts = timeRaw < 1e12 ? timeRaw * 1000 : timeRaw;
+            } else {
+                const s = String(timeRaw).trim();
+                if (/Z$|[+-]\d{2}:?\d{2}$/i.test(s)) {
+                    ts = Date.parse(s);
+                } else if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}[ T]\d{1,2}:\d{2}/.test(s)) {
+                    const m = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})[ T](\d{1,2}):(\d{2})(?::(\d{2}))?/);
+                    if (m) {
+                        // WIB = UTC+7 → restar 7 h para epoch UTC
+                        ts = Date.UTC(+m[1], +m[2]-1, +m[3], +m[4]-7, +m[5], +(m[6]||0));
+                    }
+                }
+                if (!Number.isFinite(ts) && typeof bmkgParseTime === 'function') ts = bmkgParseTime(timeRaw);
+            }
+            if (!Number.isFinite(ts) || ts <= 0) return null;
+            if (!Number.isFinite(mag) || !Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+            const depthStr = Number.isFinite(Number(p.depth))
+                ? (Math.abs(Number(p.depth)).toFixed(1) + ' km')
+                : (Number.isFinite(depthKm) && depthKm > 1 ? (Math.abs(depthKm).toFixed(1) + ' km') : '10 km');
+            const intensity = (typeof magToMMI === 'function') ? magToMMI(mag) : Math.max(1, Math.round(mag));
+            const id = 'bmkg-wrs-' + String(p.id || (ts + '-' + lat.toFixed(3) + '-' + lon.toFixed(3)));
+            const status = String(p.status || '');
+            const fase = String(p.fase || p.phase || '');
+            const age = Date.now() - ts;
+            const isFresh = age >= -120000 && age <= BMKG_WRS_FRESH_MS;
+            // WRS lastQL = detección automática en tiempo real (InaTEWS) → tratar como EEW vivo si es fresco
+            const asEew = isFresh;
+            return {
+                id,
+                intensity,
+                place: String(p.place || 'Indonesia'),
+                displayPlace: String(p.place || 'Indonesia'),
+                time: (typeof formatTime === 'function' ? formatTime(ts) : new Date(ts).toISOString()),
+                mag: (typeof magnitudeDisplay === 'function' ? magnitudeDisplay(mag) : ('M' + mag.toFixed(1))),
+                depth: depthStr,
+                agency: asEew ? 'BMKG WRS EEW' : 'BMKG WRS',
+                source: 'bmkg_wrs',
+                ts, lat, lon,
+                colorClass: (typeof intensityClass === 'function' ? intensityClass(intensity) : 'int-1'),
+                reportConfidence: status === 'M' || status === 'A' ? 'automático WRS' : (status || 'BMKG WRS'),
+                country: 'Indonesia',
+                bmkgFase: fase,
+                bmkgStatus: status,
+                isBmkgWrs: true,
+                isEew: asEew,
+                isTaupEew: asEew,
+                listFromEew: asEew,
+                isFinal: !asEew,
+                isCancel: false,
+                waveOriginTs: asEew ? ts : undefined,
+                eewMaxAgeMs: BMKG_WRS_FRESH_MS,
+                url: 'https://inatews.bmkg.go.id/wrs/index.html'
+            };
+        }
+
+        function activateBmkgWrsAsSesnaEew(ev) {
+            if (!ev || !ev.isBmkgWrs) return false;
+            try {
+                if (typeof sesnaEewIntel !== 'undefined') sesnaEewIntel.note(ev, !bmkgWrsSeenIds.has(String(ev.id)));
+            } catch (_) {}
+            try {
+                if (typeof upsertNormalizedEvent === 'function') upsertNormalizedEvent(ev, { asEew: !!ev.isTaupEew });
+                else if (Array.isArray(events)) {
+                    const i = events.findIndex(x => String(x.id) === String(ev.id));
+                    if (i >= 0) events[i] = { ...events[i], ...ev };
+                    else events.unshift(ev);
+                    try { renderEvents(); } catch (_) {}
+                }
+            } catch (_) {}
+            try {
+                if (ev.isTaupEew && Number(ev.waveOriginTs) && typeof trackWolfxEew === 'function') {
+                    trackWolfxEew(ev, false);
+                }
+            } catch (_) {}
+            // Baseline al arrancar: no abrir vista/ondas del evento histórico más reciente
+            if (!bmkgWrsLiveReady) {
+                bmkgWrsLiveReady = true;
+                bmkgLastWaveId = String(ev.id || '');
+                bmkgLastWaveEvent = { ...ev };
+                bmkgWrsSeenIds.add(String(ev.id || ''));
+                try { if (typeof setApiState === 'function') setApiState('bmkgWrs', 'ok'); } catch (_) {}
+                return false;
+            }
+            if (bmkgWrsSeenIds.has(String(ev.id))) {
+                // Misma id = actualización Sesna (sin reiniciar si es el mismo episodio)
+                if (bmkgLastWaveEvent && sameBmkgWaveEpisode(bmkgLastWaveEvent, ev)) {
+                    bmkgLastWaveEvent = { ...ev };
+                    return true;
+                }
+            }
+            bmkgWrsSeenIds.add(String(ev.id || ''));
+            if (bmkgWrsSeenIds.size > 80) {
+                const first = bmkgWrsSeenIds.values().next().value;
+                bmkgWrsSeenIds.delete(first);
+            }
+            if (!Number.isFinite(Number(ev.lat)) || !Number.isFinite(Number(ev.lon))) return false;
+            const age = Date.now() - (Number(ev.ts) || 0);
+            // Ventana EEW BMKG WRS (~8 min); si el parse de hora falla, no forzar ondas.
+            if (!Number.isFinite(age) || age < -120000 || age > (typeof BMKG_WRS_FRESH_MS === 'number' ? BMKG_WRS_FRESH_MS : 8 * 60 * 1000)) return false;
+            // Asegurar flags EEW para ondas / banner / prioridad
+            ev = {
+                ...ev,
+                isBmkgWrs: true,
+                isEew: true,
+                isTaupEew: true,
+                listFromEew: true,
+                waveOriginTs: Number(ev.waveOriginTs) || Number(ev.ts),
+                eewMaxAgeMs: (typeof BMKG_WRS_FRESH_MS === 'number' ? BMKG_WRS_FRESH_MS : 8 * 60 * 1000),
+                agency: ev.agency || 'BMKG WRS EEW'
+            };
+            if (bmkgLastWaveEvent && sameBmkgWaveEpisode(bmkgLastWaveEvent, ev) && String(bmkgLastWaveId) === String(ev.id)) {
+                bmkgLastWaveEvent = { ...ev };
+                try {
+                    if (typeof trackWolfxEew === 'function') trackWolfxEew(ev, false);
+                    if (typeof showWolfxAllEewWaves === 'function') showWolfxAllEewWaves(ev);
+                } catch (_) {}
+                return true;
+            }
+            bmkgLastWaveId = String(ev.id || '');
+            bmkgLastWaveEvent = { ...ev };
+            try {
+                if (typeof playSrevSound === 'function') playSrevSound('eew0', 'bmkg-wrs-eew:' + ev.id);
+            } catch (_) {}
+            try {
+                if (typeof trackWolfxEew === 'function') trackWolfxEew(ev, false);
+            } catch (_) {}
+            try {
+                if (typeof showWolfxAllEewWaves === 'function') showWolfxAllEewWaves(ev);
+            } catch (_) {}
+            // Fallback directo si showWolfx no centra
+            try {
+                if (Number(ev.waveOriginTs)) {
+                    taupEewWaveEvent = ev;
+                    if (typeof scheduleGenericTaupWaveExpiry === 'function') scheduleGenericTaupWaveExpiry(ev);
+                    waveMode = true;
+                    const layout = document.getElementById('mainLayout');
+                    layout?.classList.remove('japan-focus');
+                    layout?.classList.add('wave-focus');
+                    if (typeof startWaveAnimation === 'function') startWaveAnimation();
+                    if (typeof centerWaveMode === 'function') centerWaveMode();
+                    if (typeof renderWaveMode === 'function') renderWaveMode();
+                }
+            } catch (_) {}
+            try {
+                if (typeof activateEewMainView === 'function') activateEewMainView(ev);
+            } catch (_) {}
+            try { window.__sesnaEewBannerSync?.(); } catch (_) {}
+            try { if (typeof setApiState === 'function') setApiState('bmkgWrs', 'ok'); } catch (_) {}
+            return true;
+        }
+
+        async function pollBmkgWrsRealtime() {
+            try {
+                const j = await bmkgFetchJson(BMKG_WRS_LASTQL, 10000);
+                const feats = Array.isArray(j && j.features) ? j.features : [];
+                const list = feats.map(bmkgEventFromLastQLFeature).filter(Boolean);
+                if (!list.length) {
+                    try { if (typeof setApiState === 'function') setApiState('bmkgWrs', 'stale'); } catch (_) {}
+                    return;
+                }
+                list.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+                try { if (typeof setApiState === 'function') setApiState('bmkgWrs', 'ok', list.length); } catch (_) {}
+                // Integrar varios recientes en lista; solo el más nuevo dispara EEW vivo
+                list.slice(0, 12).forEach(ev => {
+                    try {
+                        if (typeof upsertNormalizedEvent === 'function') upsertNormalizedEvent(ev, { asEew: !!ev.isTaupEew });
+                    } catch (_) {}
+                });
+                activateBmkgWrsAsSesnaEew(list[0]);
+                return list;
+            } catch (e) {
+                try { console.warn('[BMKG WRS EEW]', e); } catch (_) {}
+                try { if (typeof setApiState === 'function') setApiState('bmkgWrs', 'bad'); } catch (_) {}
+            }
+        }
+
+        function startBmkgWrsPolling() {
+            if (bmkgWrsTimer) return;
+            const tick = () => {
+                if (document.hidden) return;
+                try { pollBmkgWrsRealtime(); } catch (_) {}
+            };
+            tick();
+            bmkgWrsTimer = setInterval(tick, 5000);
+            try { if (typeof setApiState === 'function') setApiState('bmkgWrs', 'wait'); } catch (_) {}
         }
 
         async function fetchBMKG() {
@@ -21431,7 +21779,61 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
 
         function startJmaEewHttpPolling() {return false;}
 
-        async function loadJmaEew(isPolling = false) {return false;}
+        async function loadJmaEew(isPolling = false) {
+            if (jmaEewHttpPollBusy) return;
+            jmaEewHttpPollBusy = true;
+            const direct = 'https://api.wolfx.jp/jma_eew.json?_=' + Date.now();
+            const targets = [
+                direct,
+                'https://api.wolfx.jp/jma_eew.json',
+                'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://api.wolfx.jp/jma_eew.json')
+            ];
+            try {
+                let payload = null;
+                for (const url of targets) {
+                    try {
+                        const res = await fetch(url, { cache: 'no-store' });
+                        if (res.ok) { payload = await res.json(); break; }
+                    } catch (_) {}
+                }
+                if (!payload) throw new Error('JMA EEW');
+                apiMetrics.jmaEew = apiMetrics.jmaEew || {};
+                apiMetrics.jmaEew.httpOk = true;
+                apiMetrics.jmaEew.httpLastSeen = Date.now();
+                if (isPolling) {
+                    apiMetrics.jmaEew.httpPolling = true;
+                    apiMetrics.jmaEew.transport = 'Wolfx HTTP · sondeo';
+                }
+                // Algunos relays entregan una lista de episodios, cada uno con
+                // varios Serial. Elegir el último reporte de cada EventID y luego
+                // el más reciente global evita saltos hacia atrás.
+                const records = expandJmaEewPayload(payload);
+                if (!records.length) throw new Error('JMA EEW sin registros');
+                const latestByEvent = new Map();
+                for (const record of records) {
+                    const id = String(record.EventID || '');
+                    if (!id) continue;
+                    const prev = latestByEvent.get(id);
+                    if (!prev || jmaEewReportTime(record) >= jmaEewReportTime(prev)) latestByEvent.set(id, record);
+                }
+                const latest = [...latestByEvent.values()].sort((a,b) => jmaEewReportTime(b) - jmaEewReportTime(a))[0] || records[0];
+                // El sondeo solo entrega cada reporte EventID+Serial una vez; los
+                // cambios terminales del mismo reporte también pasan para cerrar ondas.
+                const signature = jmaEewReportSignature(latest);
+                if (!isPolling || signature !== jmaEewHttpLastSignature) {
+                    const announceLiveHttp = !!(isPolling && jmaEewInitialized && jmaEewHttpLastSignature && signature !== jmaEewHttpLastSignature);
+                    jmaEewHttpLastSignature = signature;
+                    handleJmaEew(latest, false, announceLiveHttp);
+                }
+                if (isPolling) setApiState('jmaEew', 'ok', 1);
+            } catch (_) {
+                apiMetrics.jmaEew = apiMetrics.jmaEew || {};
+                apiMetrics.jmaEew.httpOk = false;
+                if (isPolling) apiMetrics.jmaEew.transport = 'Wolfx HTTP · sondeo';
+                setApiState('jmaEew', jmaEewData ? 'cached' : 'bad', jmaEewData ? 1 : 0);
+                renderJmaEew();
+            } finally { jmaEewHttpPollBusy = false; }
+        }
 
         function markJmaEewWsActivity() {
             jmaEewLastWsActivity = Date.now();
@@ -21441,7 +21843,50 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
 
         function startJmaEewWsWatchdog() {return false;}
 
-        function connectJmaEewWebSocket() {return false;}
+        function connectJmaEewWebSocket() {
+            if (jmaEewPageClosing) return;
+            if (!('WebSocket' in window)) { startJmaEewHttpPolling(); return; }
+            if (jmaEewSocket && (jmaEewSocket.readyState === WebSocket.OPEN || jmaEewSocket.readyState === WebSocket.CONNECTING)) return;
+            try {
+                const jmaRelay = window.WOLFX_JMA_EEW_RELAY || new URL(location.href).searchParams.get('wolfxJmaRelay') || 'wss://ws-api.wolfx.jp/jma_eew';
+                jmaEewSocket = new WebSocket(jmaRelay);
+                clearTimeout(jmaEewConnectWatch);
+                jmaEewConnectWatch = setTimeout(() => {
+                    if (jmaEewSocket && jmaEewSocket.readyState === WebSocket.CONNECTING) {
+                        try { jmaEewSocket.close(); } catch (_) {}
+                        startJmaEewHttpPolling();
+                    }
+                }, 12000);
+                jmaEewSocket.onopen = () => {
+                    clearTimeout(jmaEewConnectWatch);
+                    markJmaEewWsActivity();
+                    apiMetrics.jmaEew = apiMetrics.jmaEew || {};
+                    apiMetrics.jmaEew.wsState = 'activo';
+                    apiMetrics.jmaEew.transport = 'WebSocket';
+                    stopJmaEewHttpPolling();
+                    setApiState('jmaEew', 'ok');
+                    startJmaEewWsWatchdog();
+                };
+                jmaEewSocket.onmessage = e => {
+                    markJmaEewWsActivity();
+                    try { const payload = JSON.parse(e.data); handleJmaEew(payload, true); } catch (_) {}
+                };
+                jmaEewSocket.onclose = () => {
+                    clearTimeout(jmaEewConnectWatch);
+                    clearInterval(jmaEewHeartbeatTimer);
+                    apiMetrics.jmaEew = apiMetrics.jmaEew || {};
+                    apiMetrics.jmaEew.wsState = 'reconectando';
+                    if (!jmaEewPageClosing) startJmaEewHttpPolling();
+                    renderConnectionPanel();
+                    clearTimeout(jmaEewReconnectTimer);
+                    if (!jmaEewPageClosing) jmaEewReconnectTimer = setTimeout(connectJmaEewWebSocket, 10000);
+                };
+                jmaEewSocket.onerror = () => { try { jmaEewSocket.close(); } catch (_) {} };
+            } catch (_) {
+                startJmaEewHttpPolling();
+                if (!jmaEewPageClosing) jmaEewReconnectTimer = setTimeout(connectJmaEewWebSocket, 10000);
+            }
+        }
 
         window.addEventListener('pagehide', () => {
             jmaEewPageClosing = true;
@@ -21528,7 +21973,55 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
             try { window.__sesnaEewBannerSync?.(); } catch (_) {}
             return true;
         }
-        function trackWolfxEew(ev,officialFinal=false) {return null;}
+        const sesnaEewIntel = {
+            lastById: new Map(),
+            significantUpdate(prev, next) {
+                if (!prev) return true;
+                try {
+                    const pMag = Number(String(prev.mag ?? '').replace(/^M/i, ''));
+                    const nMag = Number(String(next.mag ?? '').replace(/^M/i, ''));
+                    const pDep = parseFloat(String(prev.depth ?? '').replace(/[^\d.-]/g, ''));
+                    const nDep = parseFloat(String(next.depth ?? '').replace(/[^\d.-]/g, ''));
+                    const pInt = String(prev.intensity ?? prev.maxIntensity ?? '');
+                    const nInt = String(next.intensity ?? next.maxIntensity ?? '');
+                    const pLoc = String(prev.place ?? prev.location ?? prev.displayPlace ?? '');
+                    const nLoc = String(next.place ?? next.location ?? next.displayPlace ?? '');
+                    if (pInt !== nInt && nInt && nInt !== '—') return true;
+                    if (Number.isFinite(pMag) && Number.isFinite(nMag) && Math.abs(nMag - pMag) >= 0.3) return true;
+                    if (Number.isFinite(pDep) && Number.isFinite(nDep) && Math.abs(nDep - pDep) >= 10) return true;
+                    if (pLoc && nLoc && pLoc !== nLoc) return true;
+                } catch (_) {}
+                return false;
+            },
+            note(ev, isNew) {
+                if (!ev || !ev.id) return;
+                const id = String(ev.id);
+                const prev = this.lastById.get(id);
+                this.lastById.set(id, { ...ev, _notedAt: Date.now() });
+                if (this.lastById.size > 80) {
+                    const first = this.lastById.keys().next().value;
+                    if (first !== id) this.lastById.delete(first);
+                }
+                return { isNew: !prev, significant: this.significantUpdate(prev, ev) };
+            },
+            forget(id) {
+                try { this.lastById.delete(String(id || '')); } catch (_) {}
+            }
+        };
+
+        function trackWolfxEew(ev,officialFinal=false) {
+            const id=String(ev?.id||'');if(!id||!Number(ev.waveOriginTs))return null;
+            const now=Date.now(),old=wolfxEewLifecycle.get(id),origin=Number(ev.waveOriginTs);
+            const magnitude=Number(String(ev.mag??'').replace(/^M/i,''));
+            const maxMagnitude=Number.isFinite(magnitude)?Math.max(Number(old?.maxMagnitude)||-Infinity,magnitude):Number(old?.maxMagnitude);
+            const deadline=Number.isFinite(maxMagnitude)?origin+wolfxEewFollowWindowMs(maxMagnitude):(old?.deadline||origin+7*60*1000);
+            // SesnaQuake: cada reporte actualiza lastReport; sin reporte en 180s → se retira.
+            const state={...(old||{}),id,event:{...ev},origin,maxMagnitude,deadline,lastReport:now,
+                status:officialFinal?'final-official':(old?.status||'active'),finalizedAt:officialFinal?(old?.finalizedAt||now):(old?.finalizedAt||0),quietSince:old?.quietSince||0,unavailableSince:old?.unavailableSince||0};
+            if(state.status==='active'&&now>=state.deadline){state.status='final-timeout';state.finalizedAt=now;}
+            try{if(typeof sesnaEewIntel!=='undefined')sesnaEewIntel.note(ev,!old);}catch(_){}
+            wolfxEewLifecycle.set(id,state);if(wolfxEewLifecycle.size>100){const first=wolfxEewLifecycle.keys().next().value;if(first!==id)wolfxEewLifecycle.delete(first);}return state;
+        }
         function wolfxEewLifecycleTick() {
             const now=Date.now();for(const [id,state] of wolfxEewLifecycle){
                 if(state.status==='active'&&now>=state.deadline){state.status='final-timeout';state.finalizedAt=now;}
@@ -21544,14 +22037,289 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
                 if(isDisplayed){try{finishEewMainOfficial(state.event,motion==='quiet'?'Movimiento cesó':'Seguimiento EEW finalizado');}catch(_){deactivateWaveMode();}}
             }
         }
-        function showWolfxAllEewWaves(ev) {return false;}
-        function handleWolfxAllEew(raw) {return false;}
-        // BMKG WRS/InaTEWS en tiempo real eliminado a petición del usuario.
+        function showWolfxAllEewWaves(ev) {
+            if (!ev) return;
+            const life=wolfxEewLifecycle.get(String(ev.id||''));
+            const visible=life?{...ev,isFinal:false,isCancel:false,isTaupEew:!!ev.waveOriginTs,eewMaxAgeMs:WOLFX_EEW_MAX_VISUAL_AGE_MS,status:life.status==='active'?'En vivo':(life.status==='final-official'?'Final · esperando movimiento':'Tiempo límite · esperando movimiento')}:ev;
+            if (!taupEewWaveIsFresh(visible)) return;
+            if(visible.waveOriginTs){taupEewWaveEvent=visible;scheduleGenericTaupWaveExpiry(visible);}
+            try{scheduleDynamicEewIntensity({...visible,requirePublishedDepthForEstimate:true},'EEW Wolfx actualización');}catch(_){}
+            try { notifyRealEarthquakePriority(visible); } catch (_) {}
+            try {
+                if(/jma/i.test(String(visible.agency||'')))openEewJapanStationsView(visible,{showToast:false});
+                else {waveMode=true;const layout=document.getElementById('mainLayout');layout?.classList.remove('japan-focus');layout?.classList.add('wave-focus');startWaveAnimation();centerWaveMode();}
+                if (typeof renderWaveMode === 'function') renderWaveMode();
+            } catch (_) {}
+            try { window.__sesnaEewBannerSync?.(); } catch (_) {}
+        }
+        function handleWolfxAllEew(raw) {
+            if (!raw || typeof raw !== 'object') return;
+            // El WS puede enviar lotes además de objetos individuales.
+            if (Array.isArray(raw)) { raw.forEach(item=>handleWolfxAllEew(item)); return; }
+            // Algunos transports empaquetan el mensaje en {type:'data',data:{...}}.
+            // Desempaquetar sin perder el tipo de fuente del sobre.
+            if (String(raw.type || '').toLowerCase() === 'data' && raw.data && typeof raw.data === 'object') {
+                const envelope = raw;
+                raw = { ...envelope.data, type:envelope.data.type || envelope.source || envelope.Source || envelope.sourceName || envelope.SourceName || '' };
+            }
+            // Heartbeat / pong = prueba de que el socket sigue vivo.
+            if (raw.type === 'heartbeat' || raw.type === 'pong') {
+                try {
+                    if (typeof apiMetrics !== 'undefined') {
+                        apiMetrics.wolfxAll = apiMetrics.wolfxAll || {};
+                        apiMetrics.wolfxAll.wsState = 'activo';
+                        apiMetrics.wolfxAll.lastSeen = Date.now();
+                    }
+                    if (typeof setApiState === 'function') setApiState('wolfxAll', 'ok');
+                } catch (_) {}
+                return;
+            }
+            const sourceNames = { jma_eew:'JMA EEW (Wolfx)', cwa_eew:'CWA EEW (Wolfx)', cenc_eew:'CENC EEW (Wolfx)', sc_eew:'CEA · Sichuan EEW (Wolfx)', cq_eew:'CEA · Chongqing EEW (Wolfx)', fj_eew:'FEA · Fujian EEW (Wolfx)', cea_gz_eew:'CEA (GZ) EEW (Wolfx)', cea_gs_eew:'CEA (GS) EEW (Wolfx)' };
+            const typeAliases={jma:'jma_eew',jmaeew:'jma_eew',cwa:'cwa_eew',cwaeew:'cwa_eew',cenc:'cenc_eew',cenceew:'cenc_eew',sichuan:'sc_eew',sceew:'sc_eew',chongqing:'cq_eew',cqeew:'cq_eew',fujian:'fj_eew',fjeew:'fj_eew',ceagzeew:'cea_gz_eew',ceagz:'cea_gz_eew',gzeew:'cea_gz_eew',ceagseew:'cea_gs_eew',ceags:'cea_gs_eew',gseew:'cea_gs_eew'};
+            const normalizeType = value => {
+                const text=String(value||'').trim().toLowerCase();
+                const compact=text.replace(/[^a-z0-9]/g,'');
+                for (const [key,label] of Object.entries(sourceNames)) if (key===text || label.toLowerCase()===text || key.replace(/[^a-z0-9]/g,'')===compact || label.toLowerCase().replace(/[^a-z0-9]/g,'')===compact) return key;
+                return typeAliases[compact] || '';
+            };
+            const typeValues=[raw.type,raw.source,raw.Source,raw.sourceName,raw.SourceName,raw.agency,raw.Agency,raw.Issue?.Source].filter(v=>v!=null).map(v=>String(v).trim());
+            const mappedTypes=typeValues.map(normalizeType).filter(Boolean);
+            const distinctTypes=[...new Set(mappedTypes)];
+            // No adjudicar mensajes de agencia ambigua: elegir una sola etiqueta
+            // incorrecta puede cruzar IDs y cerrar/actualizar otro evento.
+            const typeKey=distinctTypes.length===1?distinctTypes[0]:'';
+            if (!typeKey) return;
+            const source = sourceNames[typeKey];
+            const primaryKeys = []; // All_EEW debe procesar JMA aunque el canal dedicado esté activo.
+            const usePrimarySuppression = !['cenc_eew','sc_eew','cq_eew','fj_eew','cea_gz_eew','cea_gs_eew'].includes(typeKey);
+            const primaryIsFresh = usePrimarySuppression && primaryKeys.some(key => {
+                const m = apiMetrics[key] || {};
+                const age = Date.now() - (Number(m.lastSeen) || 0);
+                return (m.wsState === 'activo' && age >= 0 && age < 90000) ||
+                    (key === 'jmaEew' && m.httpOk === true && Date.now() - (Number(m.httpLastSeen) || 0) < 45000);
+            });
+            if (primaryIsFresh) {
+                try { apiMetrics.wolfxAll = apiMetrics.wolfxAll || {}; apiMetrics.wolfxAll.lastSeen = Date.now(); } catch (_) {}
+                try { if (typeof setApiState === 'function') setApiState('wolfxAll', 'ok'); } catch (_) {}
+                return;
+            }
+            if (typeKey === 'jma_eew') {
+                try { handleJmaEew(raw, true); } catch (_) {}
+                try { if (typeof setApiState === 'function') setApiState('wolfxAll', 'ok'); } catch (_) {}
+                return;
+            }
+            // Entrenamiento: ignorar. Cancelación: marcar lista + toast (CWA/CENC/regionales).
+            if (raw.isTraining || raw.IsTraining || raw.is_training) return;
+            const cancelText = String(raw.Message ?? raw.message ?? raw.Text ?? raw.text ?? raw.Status ?? raw.status ?? '');
+            const isCancelPacket = !!(raw.isCancel || raw.IsCancel || raw.is_cancel || raw.Cancel || raw.cancel) ||
+                /取消|取消報|取り消し|取消し|cancel|cancelled|canceled|retirad|撤销|作废/i.test(cancelText);
+            const finalValue=raw.isFinal??raw.IsFinal;
+            const terminal=finalValue===true||finalValue===1||/^(?:true|1|final)$/i.test(String(finalValue||''));
+            const latValue=raw.Latitude??raw.latitude??raw.lat,lonValue=raw.Longitude??raw.longitude??raw.lon;
+            const lat=latValue==null||String(latValue).trim()===''?NaN:Number(latValue),lon=lonValue==null||String(lonValue).trim()===''?NaN:Number(lonValue);
+            const magValue=raw.Magnitude??raw.Magunitude??raw.magnitude??raw.mag;
+            const magText=magValue==null?'':String(magValue).trim().replace(/[^0-9.+-]/g,'');
+            const mag=magText?Number(magText):NaN;
+            const extremeMag = Number.isFinite(mag) && mag >= 9.0;
+            const report = raw.ReportTime || raw.reportTime || raw.AnnouncedTime || raw.announcedTime || raw.OriginTime || raw.originTime || raw.time || raw.timestamp || '';
+            const isChina = /cenc|cwa|sc_eew|cq_eew|fj_eew|cea|fea|g[sz]eew|cea_gs_eew/i.test([typeKey,raw.type,raw.source,raw.Source,raw.SourceName,raw.agency,raw.Agency,raw.Issue?.Source,source].join(' '));
+            const zone = isChina ? '+08:00' : '+09:00';
+            const reportTs = parseWolfxAllEewTime(report, zone);
+            const originValue = raw.OriginTime || raw.originTime || raw.OriginDateTime || raw.originDateTime || raw.eventTime || raw.event_time || '';
+            const originParsed = parseWolfxAllEewTime(originValue, zone);
+            // No presentar recepción como origen: ondas solo si la fuente publicó
+            // una hora de origen válida; se conserva recepción para telemetría.
+            const receivedAt=Date.now();
+            const ts=reportTs||originParsed;
+            if(!ts)return;
+            const waveOriginTs=originParsed||0;
+            const reportNumber=raw.ReportNum??raw.reportNum??raw.ReportNumber??raw.reportNumber??raw.Serial??raw.serial??'';
+            const eewEventId=String(raw.EventID??raw.EventId??raw.eventId??raw.event_id??'');
+            const sourceReportId=raw.ID??raw.id??'';
+            const stableKey=eewEventId||(originParsed?'origin-'+Math.round(originParsed/1000):(sourceReportId!==''?'report-'+sourceReportId:(reportNumber!==''?'serial-'+reportNumber:'time-'+Math.round(ts/1000))));
+            const eventId='wolfx-all-'+typeKey+'-'+stableKey;
+            const eewMaxAgeMs=wolfxEewFollowWindowMs(mag);
+
+            if (isCancelPacket) {
+                try {
+                    for (let i = 0; i < events.length; i++) {
+                        const evx = events[i];
+                        if (!evx) continue;
+                        const sameId = eewEventId && (String(evx.eewEventId||'') === eewEventId || String(evx.id||'').includes(eewEventId));
+                        const sameAgency = String(evx.agency||'') === source || String(evx.id||'').startsWith('wolfx-all-'+source);
+                        const sameTime = eewEventId ? false : (Math.abs((parseTs(evx.ts)||0) - ts) < 180000 && sameAgency);
+                        if (sameId || sameTime || String(evx.id||'') === eventId) {
+                            events[i] = { ...evx, isCancel:true, isFinal:true, reportConfidence:'cancelado', isTaupEew:false, source:(evx.source||source)+' · cancelado' };
+                        }
+                    }
+                    renderEvents();
+                } catch (_) {}
+                try {
+                    showEarthquakeTicker({
+                        id: eventId + '-cancel', place: raw.HypoCenter || raw.Hypocenter || source,
+                        mag: Number.isFinite(mag) ? magnitudeDisplay(mag) : '—',
+                        agency: source, reportConfidence: 'cancelado', isCancel: true, ts
+                    }, source + ' · CANCELADO', { liveUpdate:true });
+                } catch (_) {}
+                try { showRegionToast('❌ ' + source + ' cancelado / retirado'); } catch (_) {}
+                try { if (typeof setApiState === 'function') setApiState('wolfxAll', 'ok'); } catch (_) {}
+                return;
+            }
+
+            const previousIndex=events.findIndex(x=>String(x.id||'')===eventId||(eewEventId&&String(x.eewEventId||'')===eewEventId&&String(x.eewSourceType||'')===typeKey));
+            const previousEvent=previousIndex>=0?events[previousIndex]:null;
+            const latMissing=latValue==null||String(latValue).trim()==='',lonMissing=lonValue==null||String(lonValue).trim()==='';
+            const validCoords=Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180;
+            if(!validCoords&&!previousEvent)return;
+            const eventLat=validCoords?lat:Number(previousEvent.lat),eventLon=validCoords?lon:Number(previousEvent.lon);
+            if(!Number.isFinite(eventLat)||!Number.isFinite(eventLon)||Math.abs(eventLat)>90||Math.abs(eventLon)>180)return;
+            if(Date.now()-ts>Math.max(eewMaxAgeMs,12*60*1000)||ts-Date.now()>2*60*1000)return;
+            const ev = {
+                id: eventId,
+                place:raw.HypoCenter||raw.Hypocenter||raw.hypoCenter||raw.hypocenter||raw.place||previousEvent?.place||source,lat:eventLat,lon:eventLon,
+                mag:Number.isFinite(mag)?magnitudeDisplay(mag):(previousEvent?.mag||'—'),depth:(raw.Depth??raw.depth)!=null?`${raw.Depth??raw.depth} km`:(previousEvent?.depth||'—'),
+                agency:source,source:extremeMag?'Wolfx · All_EEW · magnitud extrema':'Wolfx · All_EEW',ts,waveOriginTs:waveOriginTs||Number(previousEvent?.waveOriginTs)||0,
+                time:formatTime(ts),receivedAt,waveTime:(waveOriginTs||Number(previousEvent?.waveOriginTs))?formatTime(waveOriginTs||Number(previousEvent.waveOriginTs)):'',
+                reportNumber,sourceReportId,eewEventId,eewSourceType:typeKey,
+                intensity:raw.MaxIntensity??raw.maxIntensity??raw.intensity??previousEvent?.intensity??'—',colorClass:intensityClass(raw.MaxIntensity??raw.maxIntensity??raw.intensity??previousEvent?.intensity??0),
+                reportConfidence:extremeMag?'estimado':(terminal?'final':'preliminar'),autoReport:hasExplicitAutomaticStatus(raw),isFinal:false,officialTerminal:terminal,
+                isCancel:false,isEew:true,listFromEew:true,isTaupEew:!!(originParsed||previousEvent?.waveOriginTs),waveOriginEstimated:false,eewMaxAgeMs,
+                eewExtremeMag: extremeMag, estimated: extremeMag
+            };
+            const duplicateIndex=previousIndex;
+            if(duplicateIndex>=0){
+                const previous=events[duplicateIndex],seqNew=Number(reportNumber),seqOld=Number(previous.reportNumber);
+                const olderSequence=Number.isFinite(seqNew)&&Number.isFinite(seqOld)&&seqNew>0&&seqOld>0&&seqNew<seqOld;
+                const olderReportTime=!olderSequence&&reportTs>0&&Number(previous.reportPublishedTs)>0&&reportTs<Number(previous.reportPublishedTs);
+                if((olderSequence||olderReportTime)&&!terminal)return;
+                const merged={...previous,...ev,id:previous.id,agency:previous.agency||ev.agency,source:previous.source||ev.source};
+                merged.reportPublishedTs=reportTs||previous.reportPublishedTs||0;
+                if(!waveOriginTs&&previous.waveOriginTs)merged.waveOriginTs=previous.waveOriginTs;
+                if(!Number.isFinite(mag)&&previous.mag)merged.mag=previous.mag;
+                if((raw.Depth??raw.depth)==null&&previous.depth)merged.depth=previous.depth;
+                if(latMissing)merged.lat=previous.lat;if(lonMissing)merged.lon=previous.lon;
+                if(!raw.HypoCenter&&!raw.Hypocenter&&!raw.hypoCenter&&!raw.hypocenter&&!raw.place&&previous.place)merged.place=previous.place;
+                if(!raw.MaxIntensity&&!raw.maxIntensity&&!raw.intensity&&previous.intensity)merged.intensity=previous.intensity;
+                merged.eewMaxAgeMs=Math.max(Number(previous.eewMaxAgeMs)||0,Number(ev.eewMaxAgeMs)||0);
+                merged.isFinal=false;
+                events[duplicateIndex]=merged;trackWolfxEew(merged,terminal);
+                try{scheduleDynamicEewIntensity({...merged,requirePublishedDepthForEstimate:!!merged.requirePublishedDepthForEstimate},terminal?'reporte final':'actualización EEW');}catch(_){}
+                try{renderEvents();showWolfxAllEewWaves(merged);}catch(_){}
+                if(extremeMag){try{showRegionToast('⚠️ '+source+' · magnitud extrema · esperar revisión');}catch(_){}}
+                try{if(typeof setApiState==='function')setApiState('wolfxAll','ok');}catch(_){}
+                return;
+            }
+            ev.reportPublishedTs=reportTs||0;ev.requirePublishedDepthForEstimate=true;
+            const i=events.findIndex(x=>x.id===ev.id);if(i>=0)events[i]={...events[i],...ev};else events.unshift(ev);
+            trackWolfxEew(i>=0?events[i]:ev,terminal);
+            try{scheduleDynamicEewIntensity(i>=0?events[i]:ev,'nuevo EEW');}catch(_){}
+            try{renderEvents();showWolfxAllEewWaves(i>=0?events[i]:ev);}catch(_){}
+            try { showEarthquakeTicker(ev, extremeMag ? (source + ' · magnitud extrema') : source, { liveUpdate:true }); } catch (_) {}
+            if (extremeMag) { try { showRegionToast('⚠️ ' + source + ' · magnitud extrema · esperar revisión'); } catch (_) {} }
+            try { if (typeof setApiState === 'function') setApiState('wolfxAll', 'ok'); } catch (_) {}
+        }
+        // BMKG WRS/InaTEWS (lastQL) reactivado con inteligencia SesnaQuake.
 
         let wolfxAllConnectAttempts = 0;
         let wolfxAllConnectWatch = null;
         let wolfxAllStableConnectionTimer = null;
-        function connectWolfxAllEew() {return false;}
+        function connectWolfxAllEew() {
+            if (!window.WebSocket) {
+                try { if (typeof setApiState === 'function') setApiState('wolfxAll', 'bad'); } catch (_) {}
+                return;
+            }
+            try {
+                if (wolfxAllSocket) {
+                    const st = wolfxAllSocket.readyState;
+                    if (st === WebSocket.OPEN) return;
+                    if (st === WebSocket.CONNECTING) return;
+                    try { wolfxAllSocket.onopen = wolfxAllSocket.onclose = wolfxAllSocket.onerror = wolfxAllSocket.onmessage = null; } catch (_) {}
+                    try { wolfxAllSocket.close(); } catch (_) {}
+                    wolfxAllSocket = null;
+                }
+                clearInterval(wolfxAllPingTimer);
+                wolfxAllPingTimer = null;
+                clearTimeout(wolfxAllConnectWatch);
+                try {
+                    if (typeof apiMetrics !== 'undefined') {
+                        apiMetrics.wolfxAll = apiMetrics.wolfxAll || {};
+                        apiMetrics.wolfxAll.wsState = 'conectando';
+                    }
+                    if (typeof setApiState === 'function' && (!apiState.wolfxAll || apiState.wolfxAll === 'bad' || apiState.wolfxAll === 'wait')) {
+                        setApiState('wolfxAll', 'wait');
+                    }
+                } catch (_) {}
+                wolfxAllConnectAttempts++;
+                const relayFromUrl = new URL(location.href).searchParams.get('wolfxRelay');
+                const relayUrl = window.WOLFX_ALL_EEW_RELAY || relayFromUrl;
+                const allEewUrl = relayUrl || 'wss://ws-api.wolfx.jp/all_eew';
+                wolfxAllSocket = new WebSocket(allEewUrl);
+                wolfxAllConnectWatch = setTimeout(() => {
+                    try {
+                        if (wolfxAllSocket && wolfxAllSocket.readyState === WebSocket.CONNECTING) {
+                            try { wolfxAllSocket.close(); } catch (_) {}
+                        }
+                    } catch (_) {}
+                }, 8000);
+                wolfxAllSocket.onopen = () => {
+                    clearTimeout(wolfxAllConnectWatch);
+                    clearTimeout(wolfxAllStableConnectionTimer);
+                    wolfxAllStableConnectionTimer=setTimeout(()=>{wolfxAllConnectAttempts=0;wolfxAllStableConnectionTimer=null;},60000);
+                    try {
+                        if (typeof apiMetrics !== 'undefined') {
+                            apiMetrics.wolfxAll = apiMetrics.wolfxAll || {};
+                            apiMetrics.wolfxAll.wsState = 'activo';
+                            apiMetrics.wolfxAll.lastSeen = Date.now();
+                        }
+                        if (typeof setApiState === 'function') setApiState('wolfxAll', 'ok');
+                    } catch (_) {}
+                    // Solicitar el estado actual de todas las fuentes EEW documentadas.
+                    ['ping','query_jmaeew','query_cenceew','query_sceew','query_fjeew','query_cqeew'].forEach(command => {
+                        try { wolfxAllSocket.send(command); } catch (_) {}
+                    });
+                    clearInterval(wolfxAllPingTimer);
+                    wolfxAllPingTimer = setInterval(() => {
+                        if (wolfxAllSocket && wolfxAllSocket.readyState === WebSocket.OPEN) {
+                            try { wolfxAllSocket.send('ping'); } catch (_) {}
+                        }
+                    }, 20000);
+                };
+                wolfxAllSocket.onmessage = e => {
+                    try {
+                        const packet=JSON.parse(e.data);
+                        if(typeof apiMetrics!=='undefined'){apiMetrics.wolfxAll=apiMetrics.wolfxAll||{};apiMetrics.wolfxAll.lastSeen=Date.now();apiMetrics.wolfxAll.wsState='activo';}
+                        handleWolfxAllEew(packet);
+                    } catch (_) { /* Ignorar payload malformado sin tratarlo como evento válido. */ }
+                };
+                wolfxAllSocket.onclose = () => {
+                    clearTimeout(wolfxAllConnectWatch);
+                    clearTimeout(wolfxAllStableConnectionTimer);wolfxAllStableConnectionTimer=null;
+                    try {
+                        if (typeof apiMetrics !== 'undefined') {
+                            apiMetrics.wolfxAll = apiMetrics.wolfxAll || {};
+                            apiMetrics.wolfxAll.wsState = 'reconectando';
+                        }
+                        if (typeof setApiState === 'function') setApiState('wolfxAll', 'bad');
+                    } catch (_) {}
+                    clearInterval(wolfxAllPingTimer);
+                    wolfxAllPingTimer = null;
+                    wolfxAllSocket = null;
+                    clearTimeout(wolfxAllReconnect);
+                    // Reintento corto y estable: la VPN puede tardar unos
+                    // segundos en recuperar la ruta, pero no dejar Wolfx
+                    // desconectado hasta 45 s.
+                    const delay = Math.min(30000, 5000 * Math.pow(2, Math.min(wolfxAllConnectAttempts, 3)));
+                    wolfxAllReconnect = setTimeout(connectWolfxAllEew, delay);
+                };
+                wolfxAllSocket.onerror = () => {
+                    try { wolfxAllSocket.close(); } catch (_) {}
+                };
+            } catch (_) {
+                try { if (typeof setApiState === 'function') setApiState('wolfxAll', 'bad'); } catch (_) {}
+                clearTimeout(wolfxAllReconnect);
+                wolfxAllReconnect = setTimeout(connectWolfxAllEew, 8000);
+            }
+        }
         // Respaldos dedicados para las dos fuentes chinas del aviso mostrado:
         // CENC EEW y CEA Sichuan EEW. Se fusionan por ID con All_EEW.
         const WOLFX_REGIONAL_EEW = {
@@ -21593,7 +22361,7 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
             ['CSN','csn'], ['IG-EPN','igepn'], ['ISC','isc'], ['IGP','igp'],
             ['EMSC','emsc'], ['IGN','ign'], ['INETER','ineterCatac'], ['FUNVISIS','funvisis'], ['GEOFON','gfz'], ['BREQ','breq'], ['TREM','trem'], ['P-Alert','palert'], ['NIED','yahooNied'],
             ['SSN','ssn'], ['AFAD','afad'],
-            ['BMKG','bmkg'], ['GeoNet','geonet'], ['INGV','ingv'], ['IPGP','ipgp'],
+            ['BMKG','bmkg'], ['BMKG WRS EEW','bmkgWrs'], ['GeoNet','geonet'], ['INGV','ingv'], ['IPGP','ipgp'],
             ['JMA EEW','jmaEew'], ['Wolfx EEW','wolfxAll'], ['Sichuan EEW (Wolfx)','scEew'], ['Volcanes','volcanoes'], ['SED','sed'],
             ['PHIVOLCS','phivolcs'], ['CWA','cwa'],
             ['Early-Est','earlyEst'], ['GDACS','gdacs'], ['NHC','nhc'], ['NWS','nws'], ['NOAA','tsunami'], ['JMA · Tifones','jmaTyphoon'], ['NMC · Tifones','nmcTyphoon'], ['Fan Studio · Tifones','fanStudioTyphoon'], ['HKO','hko'], ['VMGD','vmgd'],
@@ -21821,13 +22589,344 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
                 }
             }
 
-            function normalizeMangxuSaItem(row) {return null;}
+            /* —— Mangxu EEW (7 canales is_eew de https://ws.mangxufurry.cc.cd/agencies) ——
+             * sa_eew, cea, cea_pr, jma_eew, cwa_eew, ca_eew, sasmex_eew
+             * Inteligencia SesnaQuake: mismo id, lastReport, 180s, cancel, ondas si hay coords. */
+            const MANGXU_EEW_CHANNELS = [
+                { id: 'sa_eew',     apiKey: 'mangxuSa',     label: 'ShakeAlert (Mangxu)', agency: 'ShakeAlert (Mangxu)' },
+                { id: 'jma_eew',    apiKey: 'mangxuJmaEew', label: 'JMA EEW (Mangxu)', agency: 'JMA EEW (Mangxu)' },
+                { id: 'cwa_eew',    apiKey: 'mangxuCwaEew', label: 'CWA EEW (Mangxu)', agency: 'CWA EEW (Mangxu)' },
+                { id: 'cea',        apiKey: 'mangxuCea',    label: 'CEA EEW (Mangxu)', agency: 'CEA EEW (Mangxu)' },
+                { id: 'cea_pr',     apiKey: 'mangxuCeaPr',  label: 'CEA-PR EEW (Mangxu)', agency: 'CEA-PR EEW (Mangxu)' },
+                { id: 'ca_eew',     apiKey: 'mangxuCaEew',  label: 'NRCan EEW (Mangxu)', agency: 'NRCan EEW (Mangxu)' },
+                { id: 'sasmex_eew', apiKey: 'mangxuSasmex', label: 'SASMEX EEW (Mangxu)', agency: 'SASMEX EEW (Mangxu)' }
+            ];
+            const MANGXU_EEW_FRESH_MS = 8 * 60 * 1000;
+            const mangxuEewSockets = Object.create(null);
+            const mangxuEewReconnect = Object.create(null);
+            const mangxuEewBackoff = Object.create(null);
+            let mangxuHttpBusy = false;
 
-            function handleMangxuSaPayload(raw) {return false;}
+            function mangxuEewWsUrl(channelId) {
+                return 'wss://ws.mangxufurry.cc.cd/ws/agency/' + channelId;
+            }
+            function mangxuEewHttpUrl(channelId) {
+                return 'https://ws.mangxufurry.cc.cd/agency/' + channelId + '/json';
+            }
+            function mangxuChannelById(channelId) {
+                return MANGXU_EEW_CHANNELS.find(c => c.id === channelId) || null;
+            }
+            function parseMangxuOriginTs(row) {
+                if (!row || typeof row !== 'object') return NaN;
+                // Prefer explicit fields
+                const raw = row.eew_raw || row.sa_raw || row.cwa_eew_raw || row.cea_data || null;
+                if (raw && typeof raw === 'object') {
+                    if (Number.isFinite(Number(raw.event_time_epoch))) {
+                        const n = Number(raw.event_time_epoch);
+                        return n > 1e12 ? n : n * 1000;
+                    }
+                    if (raw.payload && Number.isFinite(Number(raw.payload.originTime))) {
+                        const n = Number(raw.payload.originTime);
+                        return n > 1e12 ? n : (n > 1e9 ? n * 1000 : NaN);
+                    }
+                    if (raw.OriginDateTime) {
+                        const ms = Date.parse(String(raw.OriginDateTime));
+                        if (Number.isFinite(ms)) return ms;
+                    }
+                    if (raw.OriginTime) {
+                        const ms = Date.parse(String(raw.OriginTime).replace(' ', 'T'));
+                        if (Number.isFinite(ms)) return ms;
+                    }
+                }
+                if (typeof row.timestamp === 'number' && Number.isFinite(row.timestamp)) {
+                    return row.timestamp > 1e12 ? row.timestamp : row.timestamp * 1000;
+                }
+                if (row.time_utc) {
+                    const text = String(row.time_utc).trim();
+                    let ms = Date.parse(text);
+                    if (!Number.isFinite(ms)) ms = Date.parse(text.replace(' ', 'T') + (text.includes('Z') || text.includes('+') ? '' : 'Z'));
+                    if (Number.isFinite(ms)) return ms;
+                }
+                return NaN;
+            }
+            function mangxuIsCancel(row) {
+                const raw = row && (row.eew_raw || row.sa_raw || row.cwa_eew_raw || row.cea_data);
+                if (!raw || typeof raw !== 'object') return !!(row && (row.is_cancel || row.isCancel || row.cancelled));
+                if (raw.Flag && (raw.Flag.is_cancel || raw.Flag.isCancel)) return true;
+                if (raw.is_cancel || raw.isCancel || raw.cancelled) return true;
+                if (raw.payload && (raw.payload.isCancel || raw.payload.cancelled)) return true;
+                return false;
+            }
+            function mangxuIsFinal(row) {
+                const raw = row && (row.eew_raw || row.sa_raw || row.cwa_eew_raw);
+                if (!raw || typeof raw !== 'object') return !!(row && (row.is_final || row.isFinal));
+                if (raw.Flag && (raw.Flag.is_final || raw.Flag.isFinal)) return true;
+                return !!(raw.is_final || raw.isFinal);
+            }
+            function mangxuReportNumber(row) {
+                const raw = row && (row.eew_raw || row.sa_raw || row.cwa_eew_raw);
+                if (raw && raw.payload && Number.isFinite(Number(raw.payload.number))) return Number(raw.payload.number);
+                if (raw && Number.isFinite(Number(raw.Serial))) return Number(raw.Serial);
+                if (raw && Number.isFinite(Number(raw.ReportNumber))) return Number(raw.ReportNumber);
+                if (row && Number.isFinite(Number(row.reportNumber))) return Number(row.reportNumber);
+                return null;
+            }
+            function mangxuIntensity(row) {
+                const raw = row && (row.eew_raw || row.sa_raw || row.cwa_eew_raw);
+                if (raw && raw.Intensity != null && String(raw.Intensity).trim()) return String(raw.Intensity).trim();
+                if (raw && raw.MaxIntensity != null && String(raw.MaxIntensity).trim()) return String(raw.MaxIntensity).trim();
+                if (row && row.intensity != null && String(row.intensity).trim()) return String(row.intensity).trim();
+                return '—';
+            }
 
-            function connectMangxuSa() {return false;}
+            function normalizeMangxuEewItem(row, channel) {
+                if (!row || typeof row !== 'object' || !channel) return null;
+                const id = String(row.id || '').trim();
+                if (!id) return null;
+                let lat = Number(row.latitude ?? row.lat);
+                let lon = Number(row.longitude ?? row.lon);
+                const raw = row.eew_raw || row.sa_raw || row.cwa_eew_raw || row.cea_data || null;
+                if ((!Number.isFinite(lat) || !Number.isFinite(lon) || (lat === 0 && lon === 0)) && raw && typeof raw === 'object') {
+                    if (raw.payload) {
+                        lat = Number(raw.payload.epicenterLat ?? raw.payload.lat ?? lat);
+                        lon = Number(raw.payload.epicenterLon ?? raw.payload.lon ?? lon);
+                    }
+                    if (raw.lat != null) lat = Number(raw.lat);
+                    if (raw.lon != null) lon = Number(raw.lon);
+                    if (raw.Latitude != null) lat = Number(raw.Latitude);
+                    if (raw.Longitude != null) lon = Number(raw.Longitude);
+                }
+                if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+                // JMA a veces manda 0,0 en el sobre — no inventar epicentro
+                if (lat === 0 && lon === 0 && channel.id === 'jma_eew') return null;
+                const mag = Number(row.magnitude ?? row.mag);
+                if (!Number.isFinite(mag)) return null;
+                const depthRaw = Number(row.depth_km ?? row.depth ?? (raw ? (raw.Depth ?? (raw.payload && raw.payload.depth)) : undefined));
+                const originTs = parseMangxuOriginTs(row);
+                const age = Number.isFinite(originTs) ? (Date.now() - originTs) : Infinity;
+                const isCancel = mangxuIsCancel(row);
+                const isFinal = mangxuIsFinal(row);
+                const isFresh = !isCancel && age >= 0 && age <= MANGXU_EEW_FRESH_MS;
+                const place = String(row.location || row.place || channel.label).trim() || channel.label;
+                const intensity = mangxuIntensity(row);
+                const reportNo = mangxuReportNumber(row);
+                const eventId = 'mangxu-' + channel.id + '-' + id;
+                return {
+                    id: eventId,
+                    eewEventId: id,
+                    agency: channel.agency,
+                    source: 'mangxu_' + channel.id,
+                    place,
+                    displayPlace: place,
+                    time: (typeof formatTime === 'function' && Number.isFinite(originTs)) ? formatTime(originTs) : String(row.time_utc || ''),
+                    mag: (typeof magnitudeDisplay === 'function') ? magnitudeDisplay(mag) : ('M' + mag),
+                    depth: Number.isFinite(depthRaw) ? (Math.abs(depthRaw).toFixed(1) + ' km') : '—',
+                    ts: Number.isFinite(originTs) ? originTs : Date.now(),
+                    lat, lon,
+                    intensity,
+                    colorClass: (typeof intensityClass === 'function' && intensity !== '—') ? intensityClass(intensity) : '',
+                    reportConfidence: isCancel ? 'cancelado' : (isFinal ? 'final' : (reportNo != null ? ('rev ' + reportNo) : 'preliminar')),
+                    reportNumber: reportNo,
+                    isTaupEew: isFresh && !isCancel,
+                    isEew: true,
+                    listFromEew: true,
+                    isFinal: isFinal && !isFresh,
+                    isCancel,
+                    waveOriginTs: isFresh && Number.isFinite(originTs) ? originTs : undefined,
+                    eewMaxAgeMs: MANGXU_EEW_FRESH_MS,
+                    mangxuChannel: channel.id,
+                    mangxuRaw: row
+                };
+            }
+            // Alias histórico
+            function normalizeMangxuSaItem(row) {
+                return normalizeMangxuEewItem(row, mangxuChannelById('sa_eew'));
+            }
 
-            async function pollMangxuSaHttp() {return false;}
+            function ingestMangxuEewEvent(ev) {
+                if (!ev) return null;
+                try {
+                    if (typeof sesnaEewIntel !== 'undefined') sesnaEewIntel.note(ev, true);
+                } catch (_) {}
+                if (ev.isCancel) {
+                    try {
+                        const idx = events.findIndex(x => String(x.id) === String(ev.id));
+                        if (idx >= 0) {
+                            events[idx] = { ...events[idx], ...ev, isCancel: true, isFinal: true, isTaupEew: false, reportConfidence: 'cancelado' };
+                            try { renderEvents(); } catch (_) {}
+                        }
+                    } catch (_) {}
+                    try { if (typeof trackWolfxEew === 'function') trackWolfxEew({ ...ev, isTaupEew: false }, true); } catch (_) {}
+                    try { if (typeof releaseEewMainPriority === 'function' && String(eewMainPriorityEventKey || '') === String(ev.id)) releaseEewMainPriority(); } catch (_) {}
+                    return ev;
+                }
+                let stored = null;
+                try {
+                    stored = upsertNormalizedEvent(ev, { asEew: !!ev.isTaupEew });
+                } catch (_) {
+                    try {
+                        const i = events.findIndex(x => String(x.id) === String(ev.id));
+                        if (i >= 0) events[i] = { ...events[i], ...ev };
+                        else events.unshift(ev);
+                        stored = ev;
+                        try { renderEvents(); } catch (_) {}
+                    } catch (__) {}
+                }
+                try {
+                    if (ev.isTaupEew && Number(ev.waveOriginTs) && typeof trackWolfxEew === 'function') {
+                        trackWolfxEew(ev, !!ev.isFinal);
+                    }
+                } catch (_) {}
+                try {
+                    if (ev.isTaupEew && typeof showWolfxAllEewWaves === 'function') showWolfxAllEewWaves(ev);
+                } catch (_) {}
+                try {
+                    if (ev.isTaupEew && typeof activateEewMainView === 'function') activateEewMainView(ev);
+                } catch (_) {}
+                return stored;
+            }
+
+            function handleMangxuEewPayload(raw, channelId) {
+                const channel = mangxuChannelById(channelId) || mangxuChannelById('sa_eew');
+                if (!channel) return false;
+                let msg = raw;
+                if (typeof raw === 'string') {
+                    try { msg = JSON.parse(raw); } catch (_) { return false; }
+                }
+                if (!msg) return false;
+                // heartbeat
+                if (msg.type === 'heartbeat' || msg.type === 'pong' || msg.type === 'ping') {
+                    try {
+                        apiMetrics[channel.apiKey] = apiMetrics[channel.apiKey] || {};
+                        apiMetrics[channel.apiKey].wsState = 'activo';
+                        apiMetrics[channel.apiKey].lastSeen = Date.now();
+                        setApiState(channel.apiKey, 'ok');
+                    } catch (_) {}
+                    return true;
+                }
+                const rows = Array.isArray(msg) ? msg : (msg.data && Array.isArray(msg.data) ? msg.data : [msg]);
+                let n = 0;
+                rows.forEach(row => {
+                    if (!row || typeof row !== 'object') return;
+                    // skip pure catalog envelopes without mag
+                    if (row.type === 'heartbeat') return;
+                    const ev = normalizeMangxuEewItem(row, channel);
+                    if (ev) {
+                        ingestMangxuEewEvent(ev);
+                        n++;
+                    }
+                });
+                try {
+                    apiMetrics[channel.apiKey] = apiMetrics[channel.apiKey] || {};
+                    apiMetrics[channel.apiKey].lastSeen = Date.now();
+                    apiMetrics[channel.apiKey].wsState = 'activo';
+                    setApiState(channel.apiKey, 'ok', n || undefined);
+                } catch (_) {}
+                return n > 0;
+            }
+            function handleMangxuSaPayload(raw) {
+                return handleMangxuEewPayload(raw, 'sa_eew');
+            }
+
+            function scheduleMangxuEewReconnect(channelId) {
+                const channel = mangxuChannelById(channelId);
+                if (!channel) return;
+                try { if (mangxuEewReconnect[channelId]) clearTimeout(mangxuEewReconnect[channelId]); } catch (_) {}
+                const wait = Math.min(120000, Number(mangxuEewBackoff[channelId]) || 4000);
+                mangxuEewBackoff[channelId] = Math.min(120000, wait * 1.6);
+                mangxuEewReconnect[channelId] = setTimeout(() => {
+                    mangxuEewReconnect[channelId] = null;
+                    connectMangxuEewChannel(channelId);
+                }, wait);
+                try { setApiState(channel.apiKey, 'bad'); } catch (_) {}
+            }
+
+            function connectMangxuEewChannel(channelId) {
+                const channel = mangxuChannelById(channelId);
+                if (!channel || !window.WebSocket) {
+                    try { if (channel) setApiState(channel.apiKey, 'bad'); } catch (_) {}
+                    return;
+                }
+                try {
+                    const prev = mangxuEewSockets[channelId];
+                    if (prev && (prev.readyState === WebSocket.OPEN || prev.readyState === WebSocket.CONNECTING)) return;
+                } catch (_) {}
+                try { if (mangxuEewSockets[channelId]) mangxuEewSockets[channelId].close(); } catch (_) {}
+                let socket;
+                try {
+                    socket = new WebSocket(mangxuEewWsUrl(channelId));
+                } catch (e) {
+                    scheduleMangxuEewReconnect(channelId);
+                    return;
+                }
+                mangxuEewSockets[channelId] = socket;
+                try {
+                    setApiState(channel.apiKey, 'stale');
+                    apiMetrics[channel.apiKey] = apiMetrics[channel.apiKey] || {};
+                    apiMetrics[channel.apiKey].wsState = 'conectando';
+                } catch (_) {}
+                socket.onopen = function () {
+                    mangxuEewBackoff[channelId] = 4000;
+                    try {
+                        apiMetrics[channel.apiKey] = apiMetrics[channel.apiKey] || {};
+                        apiMetrics[channel.apiKey].wsState = 'activo';
+                        apiMetrics[channel.apiKey].lastSeen = Date.now();
+                        setApiState(channel.apiKey, 'ok');
+                    } catch (_) {}
+                };
+                socket.onmessage = function (ev) {
+                    try { handleMangxuEewPayload(ev.data, channelId); } catch (e) {
+                        try { console.warn('[Mangxu EEW]', channelId, e); } catch (_) {}
+                    }
+                };
+                socket.onerror = function () {
+                    try {
+                        apiMetrics[channel.apiKey] = apiMetrics[channel.apiKey] || {};
+                        apiMetrics[channel.apiKey].lastError = 'ws error';
+                    } catch (_) {}
+                };
+                socket.onclose = function () {
+                    if (mangxuEewSockets[channelId] === socket) mangxuEewSockets[channelId] = null;
+                    scheduleMangxuEewReconnect(channelId);
+                };
+            }
+
+            function connectMangxuSa() {
+                // Conecta todos los canales EEW Mangxu (incluye ShakeAlert).
+                MANGXU_EEW_CHANNELS.forEach(c => connectMangxuEewChannel(c.id));
+            }
+
+            async function pollMangxuEewHttp() {
+                if (mangxuHttpBusy || document.hidden) return;
+                mangxuHttpBusy = true;
+                try {
+                    await Promise.all(MANGXU_EEW_CHANNELS.map(async (channel) => {
+                        try {
+                            const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+                            const timer = ctrl ? setTimeout(() => ctrl.abort(), 12000) : null;
+                            const r = await fetch(mangxuEewHttpUrl(channel.id), {
+                                cache: 'no-store',
+                                signal: ctrl ? ctrl.signal : undefined,
+                                headers: { 'Accept': 'application/json' }
+                            });
+                            if (timer) clearTimeout(timer);
+                            if (!r.ok) throw new Error('HTTP ' + r.status);
+                            const data = await r.json();
+                            handleMangxuEewPayload(data, channel.id);
+                        } catch (e) {
+                            try {
+                                apiMetrics[channel.apiKey] = apiMetrics[channel.apiKey] || {};
+                                apiMetrics[channel.apiKey].lastError = String(e && e.message || e);
+                            } catch (_) {}
+                        }
+                    }));
+                } finally {
+                    mangxuHttpBusy = false;
+                }
+            }
+            async function pollMangxuSaHttp() {
+                return pollMangxuEewHttp();
+            }
 
             /** FSSN shockTime suele venir como hora de China (UTC+8) sin zona.
              *  Convertir a epoch UTC real; formatTime lo muestra en UTC-5 (Bogotá). */
@@ -25106,7 +26205,10 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
                     timedApi('gdacs', incrementalAgency('gdacs', fetchGdacsEarthquakes))
                 ]);
 
-                const extraAgencyEvents = await extraAgenciesPromise;
+                const extraAgencyEvents = await Promise.race([
+                    extraAgenciesPromise,
+                    new Promise(resolve => setTimeout(() => resolve([]), 5500))
+                ]);
                 const neicEvents = usgs.filter(ev => String(ev.agency || '').toUpperCase() === 'NEIC');
                 const usgsAgencyEvents = usgs.filter(ev => String(ev.agency || '').toUpperCase() !== 'NEIC');
                 const sourceCounts = { usgs: usgsAgencyEvents.length, neic: neicEvents.length, jma: jma.length, jmaXml: jmaXml.length,
@@ -25619,7 +26721,34 @@ function playSrevVerifiedRemoteSound(assetKey, dedupeKey = '') {
         restoreEventCache();
         loadWolfxCencEqlistInitial();
         connectWolfxCencEqlist();
+        try { if (typeof connectWolfxAllEew === 'function') connectWolfxAllEew(); } catch (_) {}
+        try { if (typeof connectJmaEewWebSocket === 'function') connectJmaEewWebSocket(); } catch (_) {}
+        try { if (typeof loadJmaEew === 'function') loadJmaEew(false); } catch (_) {}
+        try { if (typeof connectMangxuSa === 'function') connectMangxuSa(); } catch (_) {}
+        try { if (typeof pollMangxuEewHttp === 'function') setTimeout(pollMangxuEewHttp, 2000); } catch (_) {}
+        try { if (typeof startBmkgWrsPolling === 'function') setTimeout(startBmkgWrsPolling, 3500); } catch (_) {}
         loadAll(true);
+        try { setInterval(function(){ try { if (typeof pollMangxuEewHttp === "function") pollMangxuEewHttp(); } catch(_){} }, 45000); } catch(_){}
+        (function catalogBootRecovery(){
+            let tries = 0;
+            const tick = () => {
+                tries++;
+                try { if (typeof allLoadBusy !== 'undefined' && allLoadBusy && tries >= 2) allLoadBusy = false; } catch (_) {}
+                try {
+                    if (!Array.isArray(events) || events.length === 0) {
+                        try { loadAll(true); } catch (_) {}
+                        try {
+                            const loc = document.getElementById('bigLoc');
+                            if (loc && /Cargando datos/i.test(loc.textContent || '')) {
+                                loc.textContent = tries < 4 ? 'Reintentando fuentes…' : 'Sin datos aún · revisa conexión';
+                            }
+                        } catch (_) {}
+                    }
+                } catch (_) {}
+                if (tries < 6 && (!Array.isArray(events) || events.length === 0)) setTimeout(tick, 4000);
+            };
+            setTimeout(tick, 5000);
+        })();
         // Actualización de la lista y agencias cada 2 segundos.
         setInterval(() => {
             if (document.hidden) return;
@@ -32900,8 +34029,10 @@ setTimeout(()=>{try{window.__eqApplyFaults?.(!!window.__eqShowFaults);}catch(_){
 
   function exclusiveFor(newId){
     if(busy) return;
-    if(window.__eqEewMainPriorityActive?.() && !['mainLayout','ynEarlyAlert'].includes(newId)){
-      closeOne(newId); cancelApartmentTimers(newId); return;
+    if((window.__eqEewMainPriorityActive?.() || window.__eqEewSuppressOtherApartments) && !['mainLayout','ynEarlyAlert','jmaEewPanel'].includes(newId)){
+      closeOne(newId); cancelApartmentTimers(newId);
+      try { window.__eqApartmentQueue?.defer?.(newId); } catch(_){}
+      return;
     }
     claimSection(newId);
     const motionEl=document.getElementById('ynEarlyAlert');
@@ -37561,7 +38692,101 @@ document.addEventListener('click',function(e){
 
 
 
-<script id="sesna-eew-inactive-banner">(()=>{document.getElementById("sesnaEewBanner")?.remove();window.__sesnaEewBannerSync=()=>false;})();</script>
+<script id="sesna-eew-banner-active">
+(() => {
+  'use strict';
+  const IDLE = 'Sin alertas tempranas de terremoto';
+  function el(id){ return document.getElementById(id); }
+  function agencyLabel(ag) {
+    const a = String(ag || '').trim();
+    if (!a) return 'EEW';
+    if (/shakealert|sa_eew|mangxu.*sa/i.test(a)) return 'EEW - ShakeAlert';
+    if (/jma/i.test(a) && /eew/i.test(a)) return 'EEW - JMA';
+    if (/cwa/i.test(a) && /eew/i.test(a)) return 'EEW - CWA';
+    if (/cea-?pr|cea_pr/i.test(a)) return 'EEW - CEA-PR';
+    if (/\bcea\b/i.test(a) && /eew|mangxu/i.test(a)) return 'EEW - CEA';
+    if (/sasmex/i.test(a)) return 'EEW - SASMEX';
+    if (/nrcan|ca_eew/i.test(a)) return 'EEW - NRCan';
+    if (/bmkg/i.test(a) && /wrs|eew|inatews/i.test(a)) return 'EEW - BMKG WRS';
+    if (/cenc|sichuan|fea/i.test(a)) return 'EEW - CENC';
+    if (/wolfx/i.test(a) && /eew/i.test(a)) return 'EEW - Wolfx';
+    if (/eew/i.test(a)) return 'EEW - ' + a.replace(/\s*\(Mangxu\)/i,'').replace(/\s*EEW/i,'').trim();
+    return a;
+  }
+  function isLiveEewEvent(ev) {
+    if (!ev || ev.isCancel || ev.cancelled) return false;
+    const ag = String(ev.agency || ev.source || '');
+    const id = String(ev.id || '');
+    const eew = !!(ev.isTaupEew || ev.isEew || ev.eew === true || ev.listFromEew === true)
+      || /(?:^|[^a-z])eew(?:$|[^a-z])|shakealert|early[-_ ]?warning|mangxu|bmkg.?wrs/i.test(ag + ' ' + id);
+    if (!eew) return false;
+    if (ev.isFinal && !ev.isTaupEew) return false;
+    return true;
+  }
+  function pickActiveEew() {
+    const candidates = [];
+    const now = Date.now();
+    try {
+      const d = (typeof jmaEewData !== 'undefined') ? jmaEewData : null;
+      const fresh = d && typeof jmaEewIsFresh === 'function' ? jmaEewIsFresh(d) : false;
+      if (d && fresh && !d.isFinal && !d.isCancel) {
+        const place = String(d.Hypocenter || d.hypocenter || 'Japón');
+        const mag = d.Magnitude ?? d.Magunitude;
+        const serial = d.Serial || d.serial || d.ReportNumber || d.reportNumber;
+        candidates.push({ score: 100, title: 'EEW - JMA · ' + place + (mag != null && mag !== '' ? ' · M' + mag : ''), report: serial != null && serial !== '' ? '#' + serial : '', ts: Date.parse(d.OriginTime || d.AnnouncedTime || '') || now });
+      }
+    } catch (_) {}
+    try {
+      const w = (typeof taupEewWaveEvent !== 'undefined') ? taupEewWaveEvent : null;
+      if (w && typeof taupEewWaveIsFresh === 'function' && taupEewWaveIsFresh(w)) {
+        const place = String(w.place || w.region || w.location || 'Epicentro');
+        const mag = w.mag ?? w.magnitude;
+        candidates.push({ score: 95, title: agencyLabel(w.agency || w.source) + ' · ' + place + (mag != null && mag !== '' ? ' · ' + (String(mag).match(/^M/i) ? mag : 'M' + mag) : ''), report: (w.reportNumber || w.serial) ? '#' + (w.reportNumber || w.serial) : '', ts: Number(w.waveOriginTs || w.ts) || now });
+      }
+    } catch (_) {}
+    try {
+      if (typeof events !== 'undefined' && Array.isArray(events)) {
+        for (const ev of events) {
+          if (!isLiveEewEvent(ev)) continue;
+          const t0 = Number(ev.waveOriginTs || ev.ts || 0) || 0;
+          const age = t0 ? (now - t0) : 0;
+          if (t0 && (age < -120000 || age > 10 * 60 * 1000)) continue;
+          const place = String(ev.place || ev.displayPlace || ev.region || 'Epicentro');
+          const mag = ev.mag ?? ev.magnitude;
+          candidates.push({ score: ev.isTaupEew ? 88 : 75, title: agencyLabel(ev.agency || ev.source) + ' · ' + place + (mag != null && mag !== '' ? ' · ' + (String(mag).match(/^M/i) ? mag : 'M' + mag) : ''), report: (ev.reportNumber || ev.serial) ? '#' + (ev.reportNumber || ev.serial) : '', ts: t0 || now });
+        }
+      }
+    } catch (_) {}
+    if (!candidates.length) return null;
+    candidates.sort((a, b) => (b.score - a.score) || (b.ts - a.ts));
+    return candidates[0];
+  }
+  function sync() {
+    const banner = el('sesnaEewBanner');
+    const title = el('sesnaEewTitle');
+    const reportVal = el('sesnaEewReportValue');
+    const head = banner && banner.querySelector('.sesna-eew-header');
+    if (!banner || !title) return;
+    const active = pickActiveEew();
+    if (!active) {
+      title.textContent = IDLE;
+      if (reportVal) reportVal.textContent = '';
+      banner.classList.add('idle');
+      banner.classList.remove('active', 'eew-live');
+      return;
+    }
+    title.textContent = active.title || IDLE;
+    if (reportVal) reportVal.textContent = active.report || '';
+    banner.classList.remove('idle');
+    banner.classList.add('active', 'eew-live');
+  }
+  setInterval(sync, 1000);
+  setTimeout(sync, 400);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) sync(); });
+  try { window.__sesnaEewBannerSync = sync; } catch (_) {}
+})();
+</script>
+
 
 <style id="cenc-auto-card-style">
 #mainLayout > .left-panel > .current-event.cenc-auto-selected {
